@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <meta http-equiv="X-UA-Compatible" content="IE-edge">
+        <title>WebGL Fundamentals</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" type="text/css" media="screen" href="main.css">
+
+        <script src="lib/gl-matrix-min.js" defer></script>
+        <script src="lib/dat.gui.min.js" defer></script>
+        <script src="utils.js" defer></script>
+        <script src="gui.js" defer></script>
+        <script src="main.js" defer></script>
+    </head>
+
+    <body>
+        <!-- <h1>WebGL!!!</h1> -->
+        <canvas></canvas>
+        <script>
+            const _C = document.getElementsByTagName('canvas')[0];
+            _C.width = window.innerWidth;
+            _C.height = window.innerHeight;
+        </script>
+    </body>
+</html>

@@ -9,7 +9,8 @@ function main() {
     if (!gl) {
         throw new Error ("WebGL not supported");
     }
-    
+    noise.seed(Math.random());
+
     const vertexData = [
         
         //Frente
@@ -71,7 +72,10 @@ function main() {
         0.5, -.5, -.5,
         -.5, -.5, -.5,
     ];
-  
+    const cubeBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, cubeBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);
+
     const vertexShader = compileShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
     const fragmentShader = compileShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
     const program = createProgram(gl, vertexShader, fragmentShader);
@@ -211,9 +215,19 @@ function main() {
     }
 
     const camera = new Camera(75, gl.canvas.width/gl.canvas.height, 1, 1000);
-    var initialObject = new Objeto(vertexData, gl);
-    objectsToDraw.push(initialObject);
-    initialObject.bindAttribuites(program, gl);
+    var i, j;
+    for (i = 0; i < 10; ++i){
+        for (j=0; j<10; ++j){
+            let initialObject = new Objeto(vertexData, gl);
+            objectsToDraw.push(initialObject);
+            initialObject.bindAttribuites(program, gl, cubeBuffer);
+            initialObject.translationX = i;
+            initialObject.translationY = j;
+            initialObject.translationZ = Math.floor(10*noise.perlin2(i/5, j/5));
+            initialObject.matrixMultiply();
+            console.log(initialObject.position());
+        }
+    }
     var lookingAt = [0,0,0];
 
     requestAnimationFrame(drawScene);
@@ -227,7 +241,6 @@ function main() {
             //gl.enable(gl.CULL_FACE);
             gl.enable(gl.DEPTH_TEST);
             
-
             objeto.matrixMultiply();
             camera.computeView(lookingAt);
             camera.computeProjection();

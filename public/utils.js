@@ -127,13 +127,11 @@ class Objeto {
 
     //For n attribuites: create another paramenter "indexAttribuites"
     //that is a list with the string with the names of all attribuites;
-    bindAttribuites(program, gl){
+    bindAttribuites(program, gl, positionBuffer){
         gl.bindVertexArray(this.vao);
-        let positionBuffer = gl.createBuffer();
         let positionLocation = gl.getAttribLocation(program, `a_position`);
         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
         gl.enableVertexAttribArray(positionLocation);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertexData), gl.STATIC_DRAW);
         gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
         
         let colorBuffer = gl.createBuffer();

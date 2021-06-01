@@ -96,17 +96,93 @@ class Camera {
     }
     computeView(lookingAt=[0,0,0]){
         var cameraMatrix = mat4.create();
-        mat4.targetTo(cameraMatrix, [this.viewX,this.viewY,this.viewZ], lookingAt, this.up);
-        mat4.rotateX(cameraMatrix, cameraMatrix, degToRad(this.rotationX));
-        mat4.rotateY(cameraMatrix, cameraMatrix, degToRad(this.rotationY));
-        mat4.rotateZ(cameraMatrix, cameraMatrix, degToRad(this.rotationZ));
+        //mat4.lookAt(cameraMatrix, [this.viewX,this.viewY,this.viewZ], this.normal(), this.up);
         mat4.translate(cameraMatrix, cameraMatrix, [this.viewX, this.viewY, this.viewZ]);
+        mat4.translate(cameraMatrix, cameraMatrix, this.velocity(1, 1, 0));
+        mat4.rotateY(cameraMatrix, cameraMatrix, degToRad(this.rotationY));
+        mat4.rotateX(cameraMatrix, cameraMatrix, degToRad(this.rotationX));
+        //mat4.rotateZ(cameraMatrix, cameraMatrix, degToRad(this.rotationZ));
         
         mat4.invert(this.viewMatrix, cameraMatrix);
     }
+    position(){
+        return [this.viewMatrix[12],this.viewMatrix[13],this.viewMatrix[14]];
+    }
+    normal(velocity){
+        let normal = vec4.create();
+        normal[2] = velocity;
+        vec4.transformMat4(normal, normal, this.viewMatrix);
+        return normal;
+    }
+    velocity(velA, velQ, velW){
+        let velX = vec4.create();
+        velX[0] = velA;
+        vec4.transformMat4(velX, velX, this.viewMatrix);
+        let velY = vec4.create();
+        velY[1] = velQ;
+        vec4.transformMat4(velY, velY, this.viewMatrix);
+        let velZ = vec4.create();
+        velZ[2] = velW;
+        vec4.transformMat4(velZ, velZ, this.viewMatrix);
+        let velXY = vec4.create();
+        let vel = vec4.create();
+        vec4.multiply(velXY, velX, velY);
+        vec4.multiply(vel, velXY, velZ);
+        return vel;
+    }
+    normalSide(velocity){
+        let normal = vec4.create();
+        normal[0] = velocity;
+        vec4.transformMat4(normal, normal, this.viewMatrix);
+        //vec3.normalize(normal, normal);
+        return normal;
+    }
+    normalUpDown(velocity){
+        let normal = vec4.create();
+        normal[1] = velocity;
+        vec4.transformMat4(normal, normal, this.viewMatrix);
+        //vec3.normalize(normal, normal);
+        return normal;
+    }
+    translationW(velocity=0.2){
+        let normal = this.normal(velocity);
+        this.viewX += normal[0];
+        this.viewY += normal[1];
+        this.viewZ -= normal[2];
+    }
+    translationS(velocity=0.2){
+        let normal = this.normal(velocity);
+        this.viewX -= normal[0];
+        this.viewY -= normal[1];
+        this.viewZ += normal[2];
+    }
+    translationD(velocity=0.2){
+        let normal = this.normalSide(velocity);
+        this.viewX += normal[0];
+        this.viewY += normal[1];
+        this.viewZ -= normal[2];
+    }
+    translationA(velocity=0.2){
+        let normal = this.normalSide(velocity);
+        this.viewX -= normal[0];
+        this.viewY -= normal[1];
+        this.viewZ += normal[2];
+    }
+    translationQ(velocity=0.2){
+        let normal = this.normalUpDown(velocity);
+        this.viewX -= normal[0];
+        this.viewY -= normal[1];
+        this.viewZ += normal[2];
+    }
+    translationE(velocity=0.2){
+        let normal = this.normalUpDown(velocity);
+        this.viewX += normal[0];
+        this.viewY += normal[1];
+        this.viewZ -= normal[2];
+    }
 }
 class Objeto {
-    constructor(vertexData, gl){
+    constructor(gl){
         this.translationX = 0;
         this.translationY = 0;
         this.translationZ = 0;
@@ -116,7 +192,6 @@ class Objeto {
         this.scaleX = 1;
         this.scaleY = 1;
         this.scaleZ = 1;
-        this.vertexData = vertexData;
         this.changeColors = false;
         this.lookAt = false;
         this.colorData = setColorData();

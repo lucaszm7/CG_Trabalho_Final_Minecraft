@@ -1,19 +1,20 @@
-class GUIRoot {
-    constructor(vertexData, program, gl, gui, objectsToDraw) {
-        this.vertexData = vertexData;
-        this.program = program;
-        this.gl = gl;
-        this.gui = gui;
-        this.objectsToDraw = objectsToDraw;
-    }
+// class GUIRoot {
+//     constructor(vertexData, program, gl, gui, objectsToDraw) {
+//         this.vertexData = vertexData;
+//         this.program = program;
+//         this.gl = gl;
+//         this.gui = gui;
+//         this.objectsToDraw = objectsToDraw;
+//     }
     
-    addObject() {
-        var objeto = new Objeto(this.vertexData, this.gl)
-        this.objectsToDraw.push(objeto);
-        objeto.bindAttribuites(this.program, this.gl);
-        GUIAddObject(gui, objeto, this.objectsToDraw);
-    }
-}
+//     addObject() {
+//         var objeto = new Objeto(this.vertexData, this.gl)
+//         this.objectsToDraw.push(objeto);
+//         objeto.bindAttribuites(this.program, this.gl);
+//         GUIAddObject(gui, objeto, this.objectsToDraw);
+//     }
+// }
+
 // class Animation {
 //     constructor(gl, gui, program, objectsToDraw, camera, viewProjectionMatrix, mvpMatrix){
 //         this.program = program;
@@ -151,6 +152,10 @@ class Objeto {
         mat4.rotateZ(auxMatrix, auxMatrix, degToRad(this.rotationZ));
         mat4.scale(this.modelMatrix, auxMatrix, [this.scaleX,this.scaleY,this.scaleZ]);
     };
+
+    position(){
+        return [this.modelMatrix[12],this.modelMatrix[13],this.modelMatrix[14]];
+    }
 }
 function splineCurve(matrix, TransC, x, y){
     var t = TransC*0.01;

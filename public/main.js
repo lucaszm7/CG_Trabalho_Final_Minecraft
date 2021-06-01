@@ -1,6 +1,5 @@
 "use strict";
 const mat4 = glMatrix.mat4;
-const gui = new dat.GUI();
 const objectsToDraw  = []
 
 function main() {
@@ -85,7 +84,6 @@ function main() {
     };
 
     var then_animation = 0;
-
     var animation = {
         //Graus por segundo
         rotationSpeed: 20,
@@ -212,21 +210,10 @@ function main() {
         },
     }
 
-    const indexOfCameras = [0,1,2];
-    var selectedCamera = {
-        camera: 0,
-    }
     const camera = new Camera(75, gl.canvas.width/gl.canvas.height, 1, 1000);
-    const camera2 = new Camera(75, gl.canvas.width/gl.canvas.height, 1, 1000);
-    const camera3 = new Camera(75, gl.canvas.width/gl.canvas.height, 1, 1000);
-    const cameras = [];
-    cameras.push(camera, camera2, camera3);
-    var lookingAtOrigin = {
-        Origin: true,
-    };
-    const guiRoot = new GUIRoot(vertexData, program, gl, gui, objectsToDraw);
-    loadGUI(gui, guiRoot, camera, camera2, camera3, selectedCamera, indexOfCameras, animation, lookingAtOrigin);
-
+    var initialObject = new Objeto(vertexData, gl);
+    objectsToDraw.push(initialObject);
+    initialObject.bindAttribuites(program, gl);
     var lookingAt = [0,0,0];
 
     requestAnimationFrame(drawScene);
@@ -240,18 +227,12 @@ function main() {
             //gl.enable(gl.CULL_FACE);
             gl.enable(gl.DEPTH_TEST);
             
-            if(lookingAtOrigin.Origin){
-                lookingAt = [0,0,0];
-            }
-            else if(objeto.lookAt){
-                lookingAt = [objeto.modelMatrix[12],objeto.modelMatrix[13],objeto.modelMatrix[14]]
-            }
 
             objeto.matrixMultiply();
-            cameras[selectedCamera.camera].computeView(lookingAt);
-            cameras[selectedCamera.camera].computeProjection();
+            camera.computeView(lookingAt);
+            camera.computeProjection();
 
-            mat4.multiply(viewProjectionMatrix, cameras[selectedCamera.camera].projectionMatrix, cameras[selectedCamera.camera].viewMatrix);
+            mat4.multiply(viewProjectionMatrix, camera.projectionMatrix, camera.viewMatrix);
             mat4.multiply(mvpMatrix, viewProjectionMatrix, objeto.modelMatrix);
             gl.uniformMatrix4fv(uniformLocation.mvpMatrix, false, mvpMatrix);
             gl.uniform1i(uniformLocation.changeColors, objeto.changeColors);

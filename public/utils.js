@@ -3,15 +3,16 @@ class Scene {
 
     }
 }
+
 class Camera {
     constructor(fieldOfView, aspectRatio, near, far){
         this.up = [0, 1, 0];
         this.viewMatrix = mat4.create();
-        this.viewX = 0;
+        this.viewX = 10;
         this.viewY = 0;
-        this.viewZ = 10;
+        this.viewZ = -10;
         this.rotationX = 0;
-        this.rotationY = 0;
+        this.rotationY = 180;
         this.rotationZ = 0;
         this.projectionMatrix = mat4.create();
         this.fieldOfView = fieldOfView;
@@ -42,7 +43,10 @@ class Camera {
         mat4.invert(this.viewMatrix, cameraMatrix);
     }
     position(){
-        return [this.viewMatrix[12],this.viewMatrix[13],this.viewMatrix[14]];
+        let auxMatrix = mat4.create();
+        mat4.copy(auxMatrix, this.viewMatrix);
+        mat4.invert(auxMatrix, auxMatrix);
+        return [auxMatrix[12],auxMatrix[13],auxMatrix[14]];
     }
     normal(){
         let normal = vec4.create();
@@ -101,6 +105,7 @@ class Camera {
         this.viewZ -= (normal[2] * velocity);
     }
 }
+
 class Object {
     constructor(gl){
         this.translationX = 0;
@@ -150,16 +155,17 @@ class Object {
         return [this.modelMatrix[12],this.modelMatrix[13],this.modelMatrix[14]];
     }
 }
+
 class Player {
     constructor(){
 
     }
 }
-
 class Line {
     constructor(gl){
         this.initialPos = vec3.create();
         this.finalPos = vec3.fromValues(1,1,1);
+        this.direction = vec3.create;
         this.vao = gl.createVertexArray();
         this.modelMatrix = mat4.create();
     }
@@ -189,30 +195,6 @@ class Line {
         this.finalPos[1] = lenght;
         this.finalPos[2] = lenght;
     }
-}
-function initializeLine(gl, a, b){
-    a.concat(b);
-    var vertices = new Float32Array(a);
-      var n = 2;
-  
-      var vertexBuffer = gl.createBuffer();
-      if (!vertexBuffer) {
-        console.log('Failed to create the buffer object');
-        return -1;
-      }
-  
-      gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-  
-      var aPosition = gl.getAttribLocation(program, 'a_position');
-      if (aPosition < 0) {
-        console.log('Failed to get the storage location of a_position');
-        return -1;
-      }
-      gl.vertexAttribPointer(aPosition, 3, gl.FLOAT, false, 0, 0);
-      gl.enableVertexAttribArray(aPosition);
-  
-      return n;
 }
 
 function degToRad(degrees) {

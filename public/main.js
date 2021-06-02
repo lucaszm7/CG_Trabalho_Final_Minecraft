@@ -102,8 +102,8 @@ function main() {
 
     const camera = new Camera(75, gl.canvas.width/gl.canvas.height, 1e-4, 1000);
 
-    for (let i = 0; i < 30; ++i){
-        for (let j=0; j < 30; ++j){
+    for (let i = 0; i < 64; ++i){
+        for (let j=0; j < 64; ++j){
             let initialObject = new Object(gl);
             objectsToDraw.push(initialObject);
             initialObject.bindAttribuites(program, gl, cubeBuffer);
@@ -139,8 +139,8 @@ function main() {
             console.log(camera.position());
         }
         if(event.key == "l"){
-            line.finalPos[2] += 1;
-            console.log(line)
+            linesToDrawn[0].setInitialPos(camera.position());
+            linesToDrawn[0].setLenght(20);
         }
     });
     
@@ -156,11 +156,8 @@ function main() {
             initialLine.setInitialPos([i, 0, j]);
             initialLine.setLenght(Math.floor(10*noise.perlin2(i/5, j/5)));
             initialLine.computeLine();
-            console.log(initialLine);
         }
     }
-
-    console.log(camera.position())
 
     requestAnimationFrame(drawScene);
     function drawScene () {
@@ -182,10 +179,10 @@ function main() {
 
         objectsToDraw.forEach(function(objeto) {
             
-            gl.useProgram(program);
+            //gl.useProgram(program);
             gl.bindVertexArray(objeto.vao);
             //gl.enable(gl.CULL_FACE);
-            gl.enable(gl.DEPTH_TEST);
+            //gl.enable(gl.DEPTH_TEST);
             
             objeto.matrixMultiply();
             camera.computeView();

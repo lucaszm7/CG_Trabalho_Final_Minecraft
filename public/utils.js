@@ -1,71 +1,8 @@
-// class GUIRoot {
-//     constructor(vertexData, program, gl, gui, objectsToDraw) {
-//         this.vertexData = vertexData;
-//         this.program = program;
-//         this.gl = gl;
-//         this.gui = gui;
-//         this.objectsToDraw = objectsToDraw;
-//     }
-    
-//     addObject() {
-//         var objeto = new Objeto(this.vertexData, this.gl)
-//         this.objectsToDraw.push(objeto);
-//         objeto.bindAttribuites(this.program, this.gl);
-//         GUIAddObject(gui, objeto, this.objectsToDraw);
-//     }
-// }
+class Scene {
+    constructor(){
 
-// class Animation {
-//     constructor(gl, gui, program, objectsToDraw, camera, viewProjectionMatrix, mvpMatrix){
-//         this.program = program;
-//         this.gl = gl;
-//         this.gui = gui;
-//         this.objectsToDraw = objectsToDraw;
-//         this.camera = camera;
-//         this.object = null;
-//         this.uniformLocation = {
-//             mvpMatrix: this.gl.getUniformLocation(this.program, `u_mvpMatrix`),
-//         };
-        
-//         this.viewProjectionMatrix = viewProjectionMatrix;
-//         this.mvpMatrix = mvpMatrix
-    
-//         this.rotationSpeed = radToDeg(1.2);
-//         this.then = 0;
-//         //Radianos por segundo
-//     }
-//     callAnimete(){
-//         requestAnimationFrame(this.animate);
-//     }
-//     animate(now){
-//         if(now == null){
-//             now = 0;
-//         }
-//         now *= 0.001;
-//         var deltaTime = now - this.then;
-//         this.then = now;
-
-//         this.gl.useProgram(this.program);
-//         this.gl.bindVertexArray(this.objectsToDraw[this.object].vao);
-//         this.gl.enable(this.gl.DEPTH_TEST);
-        
-//         this.objectsToDraw[this.object].rotationX += this.rotationSpeed * deltaTime;
-//         console.log(this.objectsToDraw[this.object].rotationX);
-//         this.objectsToDraw[this.object].matrixMultiply();
-//         this.camera.computeView();
-//         this.camera.computeProjection();
-
-//         mat4.multiply(this.viewProjectionMatrix, this.camera.viewMatrix, this.camera.projectionMatrix);
-//         mat4.multiply(this.mvpMatrix, this.viewProjectionMatrix, this.objectsToDraw[this.object].modelMatrix);
-        
-//         this.gl.uniformMatrix4fv(this.uniformLocation.mvpMatrix, false, this.mvpMatrix);
-//         this.gl.drawArrays(this.gl.TRIANGLES, 0, this.objectsToDraw[this.object].vertexData.length / 3);
-
-//         if(this.objectsToDraw[this.object].rotationX <= 60){
-//             requestAnimationFrame(this.animate);
-//         }
-//     }
-// }
+    }
+}
 class Camera {
     constructor(fieldOfView, aspectRatio, near, far){
         this.up = [0, 1, 0];
@@ -98,7 +35,6 @@ class Camera {
         var cameraMatrix = mat4.create();
         //mat4.lookAt(cameraMatrix, [this.viewX,this.viewY,this.viewZ], this.normal(), this.up);
         mat4.translate(cameraMatrix, cameraMatrix, [this.viewX, this.viewY, this.viewZ]);
-        mat4.translate(cameraMatrix, cameraMatrix, this.velocity(1, 1, 0));
         mat4.rotateY(cameraMatrix, cameraMatrix, degToRad(this.rotationY));
         mat4.rotateX(cameraMatrix, cameraMatrix, degToRad(this.rotationX));
         //mat4.rotateZ(cameraMatrix, cameraMatrix, degToRad(this.rotationZ));
@@ -108,80 +44,64 @@ class Camera {
     position(){
         return [this.viewMatrix[12],this.viewMatrix[13],this.viewMatrix[14]];
     }
-    normal(velocity){
+    normal(){
         let normal = vec4.create();
-        normal[2] = velocity;
+        normal[2] = 1;
         vec4.transformMat4(normal, normal, this.viewMatrix);
         return normal;
     }
-    velocity(velA, velQ, velW){
-        let velX = vec4.create();
-        velX[0] = velA;
-        vec4.transformMat4(velX, velX, this.viewMatrix);
-        let velY = vec4.create();
-        velY[1] = velQ;
-        vec4.transformMat4(velY, velY, this.viewMatrix);
-        let velZ = vec4.create();
-        velZ[2] = velW;
-        vec4.transformMat4(velZ, velZ, this.viewMatrix);
-        let velXY = vec4.create();
-        let vel = vec4.create();
-        vec4.multiply(velXY, velX, velY);
-        vec4.multiply(vel, velXY, velZ);
-        return vel;
-    }
-    normalSide(velocity){
+
+    normalSide(){
         let normal = vec4.create();
-        normal[0] = velocity;
+        normal[0] = 1;
         vec4.transformMat4(normal, normal, this.viewMatrix);
-        //vec3.normalize(normal, normal);
         return normal;
     }
-    normalUpDown(velocity){
+
+    normalUpDown(){
         let normal = vec4.create();
-        normal[1] = velocity;
-        vec4.transformMat4(normal, normal, this.viewMatrix);
-        //vec3.normalize(normal, normal);
+        normal[1] = 1;
         return normal;
     }
+
     translationW(velocity=0.2){
-        let normal = this.normal(velocity);
-        this.viewX += normal[0];
-        this.viewY += normal[1];
-        this.viewZ -= normal[2];
+        let normal = this.normal();
+        this.viewX += (normal[0] * velocity);
+        this.viewY += (normal[1] * velocity);
+        this.viewZ -= (normal[2] * velocity);
     }
     translationS(velocity=0.2){
-        let normal = this.normal(velocity);
-        this.viewX -= normal[0];
-        this.viewY -= normal[1];
-        this.viewZ += normal[2];
+        let normal = this.normal();
+        this.viewX -= (normal[0] * velocity);
+        this.viewY -= (normal[1] * velocity);
+        this.viewZ += (normal[2] * velocity);
     }
     translationD(velocity=0.2){
-        let normal = this.normalSide(velocity);
-        this.viewX += normal[0];
-        this.viewY += normal[1];
-        this.viewZ -= normal[2];
+        let normal = this.normalSide();
+        this.viewX += (normal[0] * velocity);
+        this.viewY += (normal[1] * velocity);
+        this.viewZ -= (normal[2] * velocity);
     }
     translationA(velocity=0.2){
-        let normal = this.normalSide(velocity);
-        this.viewX -= normal[0];
-        this.viewY -= normal[1];
-        this.viewZ += normal[2];
+        let normal = this.normalSide();
+        this.viewX -= (normal[0] * velocity);
+        this.viewY -= (normal[1] * velocity);
+        this.viewZ += (normal[2] * velocity);
     }
     translationQ(velocity=0.2){
-        let normal = this.normalUpDown(velocity);
-        this.viewX -= normal[0];
-        this.viewY -= normal[1];
-        this.viewZ += normal[2];
+        let normal = this.normalUpDown();
+        this.viewX -= (normal[0] * velocity);
+        this.viewY -= (normal[1] * velocity);
+        this.viewZ += (normal[2] * velocity);
     }
     translationE(velocity=0.2){
         let normal = this.normalUpDown(velocity);
-        this.viewX += normal[0];
-        this.viewY += normal[1];
-        this.viewZ -= normal[2];
+        this.viewX += (normal[0] * velocity);
+        this.viewY += (normal[1] * velocity);
+        this.viewZ -= (normal[2] * velocity);
     }
 }
-class Objeto {
+class Object {
     constructor(gl){
         this.translationX = 0;
         this.translationY = 0;
@@ -230,16 +150,71 @@ class Objeto {
         return [this.modelMatrix[12],this.modelMatrix[13],this.modelMatrix[14]];
     }
 }
-function splineCurve(matrix, TransC, x, y){
-    var t = TransC*0.01;
-    var xout = (1-t)*((1-t)*((1-t)*x[0] + t*x[1]) + t*((1-t)*x[1] + t*x[2])) + t*((1-t)*((1-t)*x[1] + t*x[2]) + t*((1-t)*x[2] + t*x[3]));
-    var yout = (1-t)*((1-t)*((1-t)*y[0] + t*y[1]) + t*((1-t)*y[1] + t*y[2])) + t*((1-t)*((1-t)*y[1] + t*y[2]) + t*((1-t)*y[2] + t*y[3]));
+class Player {
+    constructor(){
+
+    }
+}
+
+class Line {
+    constructor(gl){
+        this.initialPos = vec3.create();
+        this.finalPos = vec3.fromValues(1,1,1);
+        this.vao = gl.createVertexArray();
+        this.modelMatrix = mat4.create();
+    }
+    bindAttribuites(program, gl, lineBuffer){
+        gl.bindVertexArray(this.vao);
+        let positionLocation = gl.getAttribLocation(program, `a_position`);
+        if (positionLocation < 0) {
+            console.log('Failed to get the storage location of a_position');
+            return -1;
+          }
+        gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);
+        gl.enableVertexAttribArray(positionLocation);
+        gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+    };
+    computeLine(){
+        let auxMatrix = mat4.create();
+        mat4.translate(auxMatrix, auxMatrix, this.initialPos);
+        mat4.scale(this.modelMatrix, auxMatrix, this.finalPos);
+    }
+    setInitialPos(pos){
+        this.initialPos[0] = pos[0];
+        this.initialPos[1] = pos[1];
+        this.initialPos[2] = pos[2];
+    }
+    setLenght(lenght){
+        this.finalPos[0] = lenght;
+        this.finalPos[1] = lenght;
+        this.finalPos[2] = lenght;
+    }
+}
+function initializeLine(gl, a, b){
+    a.concat(b);
+    var vertices = new Float32Array(a);
+      var n = 2;
   
-    mat4.translate(matrix. matrix, xout);
-    mat4.translate(matrix. matrix, yout);
+      var vertexBuffer = gl.createBuffer();
+      if (!vertexBuffer) {
+        console.log('Failed to create the buffer object');
+        return -1;
+      }
   
-    return matrix;
-  }
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  
+      var aPosition = gl.getAttribLocation(program, 'a_position');
+      if (aPosition < 0) {
+        console.log('Failed to get the storage location of a_position');
+        return -1;
+      }
+      gl.vertexAttribPointer(aPosition, 3, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(aPosition);
+  
+      return n;
+}
+
 function degToRad(degrees) {
     return degrees * Math.PI / 180;
 }

@@ -14,7 +14,7 @@ function main() {
     }
 
     noise.seed(Math.random());
-
+    let wireFrame = false;
     const vertexData = [
         
         //Frente
@@ -114,7 +114,7 @@ function main() {
         }
     }
 
-    mousePlayer(camera);
+    eventsListeners(camera);
 
     addEventListener('keydown', (event) => {
         if(event.key == "w"){
@@ -137,6 +137,9 @@ function main() {
         }
         if(event.key == "k"){
             console.log(camera.position());
+        }
+        if(event.key == "h"){
+            wireFrame = !(wireFrame);
         }
         if(event.key == "l"){
             linesToDrawn[0].setInitialPos(camera.position());
@@ -161,6 +164,8 @@ function main() {
 
     requestAnimationFrame(drawScene);
     function drawScene () {
+        
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
         linesToDrawn.forEach(function(line) {
             gl.useProgram(program);
@@ -191,7 +196,13 @@ function main() {
             mat4.multiply(mvpMatrix, viewProjectionMatrix, objeto.modelMatrix);
             gl.uniformMatrix4fv(uniformLocation.mvpMatrix, false, mvpMatrix);
             gl.uniform1i(uniformLocation.changeColors, objeto.changeColors);
-            gl.drawArrays(gl.TRIANGLES, 0, vertexData.length / 3);
+
+            if(wireFrame){
+                gl.drawArrays(gl.LINE_STRIP, 0, vertexData.length / 3);
+            }
+            else{
+                gl.drawArrays(gl.TRIANGLES, 0, vertexData.length / 3);
+            }
         });
 
         requestAnimationFrame(drawScene);

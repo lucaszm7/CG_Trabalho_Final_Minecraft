@@ -117,7 +117,6 @@ class Object {
         this.scaleX = 1;
         this.scaleY = 1;
         this.scaleZ = 1;
-        this.changeColors = false;
         this.lookAt = false;
         this.colorData = setColorData();
         this.vao = gl.createVertexArray();
@@ -127,13 +126,19 @@ class Object {
 
     //For n attribuites: create another paramenter "indexAttribuites"
     //that is a list with the string with the names of all attribuites;
-    bindAttribuites(program, gl, positionBuffer){
+    bindAttribuites(program, gl, positionBuffer, textcoordBuffer){
         gl.bindVertexArray(this.vao);
+
         let positionLocation = gl.getAttribLocation(program, `a_position`);
         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
         gl.enableVertexAttribArray(positionLocation);
         gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
         
+        let textcoordLocation = gl.getAttribLocation(program, `a_textcoord`);
+        gl.bindBuffer(gl.ARRAY_BUFFER, textcoordBuffer);
+        gl.enableVertexAttribArray(textcoordLocation);
+        gl.vertexAttribPointer(textcoordLocation, 2, gl.FLOAT, true, 0, 0);
+
         let colorBuffer = gl.createBuffer();
         let colorLocation = gl.getAttribLocation(program, `a_color`);
         gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
@@ -197,6 +202,9 @@ class Line {
     }
 }
 
+function repeat(n, pattern){
+    return [...Array(n)].reduce(sum => sum.concat(pattern), []);
+}
 function degToRad(degrees) {
     return degrees * Math.PI / 180;
 }
@@ -245,15 +253,16 @@ uniform mat4 u_mvpMatrix;
 uniform vec2 u_resolution;
 
 in vec3 a_position;
+in vec2 a_textcoord;
 in vec3 a_color;
 
 out vec3 v_color;
-out vec4 v_position;
+out vec2 v_textcoord;
 
 void main() {
     gl_Position = u_mvpMatrix * vec4(a_position, 1);
 
-    v_position = gl_Position;
+    v_textcoord = a_textcoord;
     v_color = a_color;
 }
 `;
@@ -261,19 +270,20 @@ const fragmentShaderSource =
 `#version 300 es
 precision highp float;
 
+uniform int u_useTextures;
+uniform sampler2D u_texture;
+
 in vec3 v_color;
-in vec4 v_position;
+in vec2 v_textcoord;
 
 out vec4 outColor;
 
-uniform int u_changeColors;
-
 void main() {
-    if(u_changeColors == 0){
+    if(u_useTextures == 0){
         outColor = vec4(v_color, 1.0);
     }
     else {
-        outColor = v_position + vec4(v_color, 1.0);
+        outColor = texture(u_texture, v_textcoord);
     }
 }
 `;

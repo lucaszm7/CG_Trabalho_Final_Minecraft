@@ -1,4 +1,4 @@
-function eventsListeners(camera){
+function eventsListeners(camera, linesToDrawn, wireFrame, useTextures){
     const canvas = document.querySelector('canvas');
     canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
     document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
@@ -31,13 +31,16 @@ function eventsListeners(camera){
     function updateRotation(e) {
         let x = e.movementX;
         let y = e.movementY;
-        if(camera.rotationX >= 360 || camera.rotationX >= -360){
-            camera.rotationX -= 360;
+        if(camera.rotationX + (y/2) * -1 >= 90 || camera.rotationX + (y/2) * -1 <= -90){
+            
         }
-        if(camera.rotationY >= 360 || camera.rotationY >= -360){
-            camera.rotationX -= 360;
+        else{
+            camera.rotationX += (y/2) * -1;
         }
-        camera.rotationX += (y/2) * -1;
+        if(camera.rotationY >= 360 || camera.rotationY <= -360){
+            camera.rotationY -= 360;
+        }
+        
         camera.rotationY += (x/2) * -1;
     }
 }

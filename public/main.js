@@ -14,7 +14,9 @@ function main() {
     }
 
     noise.seed(Math.random());
-    let wireFrame = false;
+    var wireFrame = false;
+    var useTextures = true;
+
     const vertexData = [
         
         //Frente
@@ -76,18 +78,45 @@ function main() {
         0.5, -.5, -.5,
         -.5, -.5, -.5,
     ];
+
+    const textcoordData = repeat(6, [
+            1, 1, // top right
+            1, 0, // bottom right
+            0, 1, // top left
+        
+            0, 1, // top left
+            1, 0, // bottom right
+            0, 0  // bottom left
+    ]);
+
     const cubeBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, cubeBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);
+
+    const textcoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, textcoordBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textcoordData), gl.STATIC_DRAW);
 
     const lineBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0,0,1,1,1]), gl.STATIC_DRAW);
 
-    if (!lineBuffer) {
-        console.log('Failed to create the buffer object');
-        return -1;
-      }
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    
+    // Fill the texture with a 1x1 blue pixel.
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+                new Uint8Array([0, 0, 255, 255]));
+    
+    // Asynchronously load an image
+    var image = new Image();
+    image.src = "textures/default_sand.png";
+    image.addEventListener('load', function() {
+        // Now that the image has loaded make copy it to the texture.
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
+        gl.generateMipmap(gl.TEXTURE_2D);
+    });
 
     const vertexShader = compileShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
     const fragmentShader = compileShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
@@ -97,16 +126,17 @@ function main() {
     const mvpMatrix = mat4.create();
     const uniformLocation = {
         mvpMatrix: gl.getUniformLocation(program, `u_mvpMatrix`),
-        changeColors: gl.getUniformLocation(program, `u_changeColors`),
+        useTextures: gl.getUniformLocation(program, `u_useTextures`),
     };
 
     const camera = new Camera(75, gl.canvas.width/gl.canvas.height, 1e-4, 1000);
+    eventsListeners(camera, linesToDrawn);
 
     for (let i = 0; i < 64; ++i){
         for (let j=0; j < 64; ++j){
             let initialObject = new Object(gl);
             objectsToDraw.push(initialObject);
-            initialObject.bindAttribuites(program, gl, cubeBuffer);
+            initialObject.bindAttribuites(program, gl, cubeBuffer, textcoordBuffer);
             initialObject.translationX = i;
             initialObject.translationZ = j;
             initialObject.translationY = Math.floor(10*noise.perlin2(i/5, j/5));
@@ -114,7 +144,16 @@ function main() {
         }
     }
 
-    eventsListeners(camera);
+    for (let i = 0; i < 5; ++i){
+        for (let j=0; j < 5; ++j){
+            let initialLine = new Line(gl);
+            linesToDrawn.push(initialLine);
+            initialLine.bindAttribuites(program, gl, lineBuffer);
+            initialLine.setInitialPos([i, 0, j]);
+            initialLine.setLenght(Math.floor(10*noise.perlin2(i/5, j/5)));
+            initialLine.computeLine();
+        }
+    }
 
     addEventListener('keydown', (event) => {
         if(event.key == "w"){
@@ -137,9 +176,16 @@ function main() {
         }
         if(event.key == "k"){
             console.log(camera.position());
+            console.log(camera.rotationX);
+            console.log(camera.rotationY);
         }
         if(event.key == "h"){
             wireFrame = !(wireFrame);
+            console.log(wireFrame);
+        }
+        if(event.key == "t"){
+            useTextures = !(useTextures);
+            console.log(useTextures);
         }
         if(event.key == "l"){
             linesToDrawn[0].setInitialPos(camera.position());
@@ -151,22 +197,11 @@ function main() {
         //console.log("Key up: " + event.key);
     });
 
-    for (let i = 0; i < 5; ++i){
-        for (let j=0; j < 5; ++j){
-            let initialLine = new Line(gl);
-            linesToDrawn.push(initialLine);
-            initialLine.bindAttribuites(program, gl, lineBuffer);
-            initialLine.setInitialPos([i, 0, j]);
-            initialLine.setLenght(Math.floor(10*noise.perlin2(i/5, j/5)));
-            initialLine.computeLine();
-        }
-    }
-
     requestAnimationFrame(drawScene);
     function drawScene () {
-        
-        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        //console.log(wireFrame);
         linesToDrawn.forEach(function(line) {
             gl.useProgram(program);
             gl.bindVertexArray(line.vao);
@@ -179,6 +214,8 @@ function main() {
             mat4.multiply(mvpMatrix, viewProjectionMatrix, line.modelMatrix);
     
             gl.uniformMatrix4fv(uniformLocation.mvpMatrix, false, mvpMatrix);
+            gl.uniform1i(uniformLocation.useTextures, 0);
+
             gl.drawArrays(gl.LINES, 0, 2);
         })
 
@@ -195,7 +232,7 @@ function main() {
             mat4.multiply(viewProjectionMatrix, camera.projectionMatrix, camera.viewMatrix);
             mat4.multiply(mvpMatrix, viewProjectionMatrix, objeto.modelMatrix);
             gl.uniformMatrix4fv(uniformLocation.mvpMatrix, false, mvpMatrix);
-            gl.uniform1i(uniformLocation.changeColors, objeto.changeColors);
+            gl.uniform1i(uniformLocation.useTextures, useTextures);
 
             if(wireFrame){
                 gl.drawArrays(gl.LINE_STRIP, 0, vertexData.length / 3);

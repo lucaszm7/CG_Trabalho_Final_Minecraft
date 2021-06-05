@@ -113,84 +113,71 @@ class Camera {
                         near,
                         far);
     }
-    computeProjection(){
-        mat4.perspective(this.projectionMatrix,
-            degToRad(this.fieldOfView),
-            this.aspectRatio,
-            this.near,
-            this.far);
+
+    SetPosition(x, y, z){
+        this.viewX = x;
+        this.viewY = y;
+        this.viewZ = z;
     }
-    computeView(lookingAt=[0,0,0]){
+
+    ComputeView(){
         var cameraMatrix = mat4.create();
-        //mat4.lookAt(cameraMatrix, [this.viewX,this.viewY,this.viewZ], this.normal(), this.up);
         mat4.translate(cameraMatrix, cameraMatrix, [this.viewX, this.viewY, this.viewZ]);
         mat4.rotateY(cameraMatrix, cameraMatrix, degToRad(this.rotationY));
-        mat4.rotateX(cameraMatrix, cameraMatrix, degToRad(this.rotationX));
-        //mat4.rotateZ(cameraMatrix, cameraMatrix, degToRad(this.rotationZ));
-        
+        mat4.rotateX(cameraMatrix, cameraMatrix, degToRad(this.rotationX));        
         mat4.invert(this.viewMatrix, cameraMatrix);
     }
-    position(){
+    Position(){
         let auxMatrix = mat4.create();
         mat4.copy(auxMatrix, this.viewMatrix);
         mat4.invert(auxMatrix, auxMatrix);
         return [auxMatrix[12],auxMatrix[13],auxMatrix[14]];
     }
-    normal(){
+    Normal(){
         let normal = vec4.create();
         normal[2] = 1;
         vec4.transformMat4(normal, normal, this.viewMatrix);
         return normal;
     }
 
-    normalSide(){
+    NormalSide(){
         let normal = vec4.create();
         normal[0] = 1;
         vec4.transformMat4(normal, normal, this.viewMatrix);
         return normal;
     }
 
-    normalUpDown(){
-        let normal = vec4.create();
-        normal[1] = 1;
-        return normal;
-    }
-
     translationW(velocity=0.2){
-        let normal = this.normal();
+        let normal = this.Normal();
         this.viewX += (normal[0] * velocity);
         this.viewY += (normal[1] * velocity);
         this.viewZ -= (normal[2] * velocity);
     }
     translationS(velocity=0.2){
-        let normal = this.normal();
+        let normal = this.Normal();
         this.viewX -= (normal[0] * velocity);
         this.viewY -= (normal[1] * velocity);
         this.viewZ += (normal[2] * velocity);
     }
     translationD(velocity=0.2){
-        let normal = this.normalSide();
+        let normal = this.NormalSide();
         this.viewX += (normal[0] * velocity);
         this.viewY += (normal[1] * velocity);
         this.viewZ -= (normal[2] * velocity);
     }
     translationA(velocity=0.2){
-        let normal = this.normalSide();
+        let normal = this.NormalSide();
         this.viewX -= (normal[0] * velocity);
         this.viewY -= (normal[1] * velocity);
         this.viewZ += (normal[2] * velocity);
     }
     translationQ(velocity=0.2){
-        let normal = this.normalUpDown();
-        this.viewX -= (normal[0] * velocity);
+        let normal = vec3.fromValues(0,1,0);
         this.viewY -= (normal[1] * velocity);
-        this.viewZ += (normal[2] * velocity);
     }
     translationE(velocity=0.2){
-        let normal = this.normalUpDown(velocity);
-        this.viewX += (normal[0] * velocity);
+        let normal = vec3.fromValues(0,1,0);
         this.viewY += (normal[1] * velocity);
-        this.viewZ -= (normal[2] * velocity);
     }
 }
 

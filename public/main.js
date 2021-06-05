@@ -138,7 +138,7 @@ function main() {
         face: gl.getUniformLocation(program, `u_face`),
     };
 
-    const camera = new Camera(75, gl.canvas.width/gl.canvas.height, 1e-4, 1000);
+    const camera = new Camera(75, gl.canvas.width/gl.canvas.height, 1e-4, 10000);
     eventsListeners(camera, linesToDrawn);
 
     for (let i = 0; i < 64; ++i){
@@ -190,7 +190,7 @@ function main() {
             camera.translationE();
         }
         if(event.key == "k"){
-            console.log(camera.position());
+            console.log(camera.Position());
         }
         if(event.key == "h"){
             wireFrame = !(wireFrame);
@@ -199,7 +199,7 @@ function main() {
             useTextures = !(useTextures);
         }
         if(event.key == "l"){
-            linesToDrawn[0].setInitialPos(camera.position());
+            linesToDrawn[0].setInitialPos(camera.Position());
             linesToDrawn[0].setLenght(20);
         }
     });
@@ -215,7 +215,7 @@ function main() {
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         gl.enable(gl.DEPTH_TEST);
         //gl.enable(gl.CULL_FACE);
-        camera.computeView();
+        camera.ComputeView();
         mat4.multiply(viewProjectionMatrix, camera.projectionMatrix, camera.viewMatrix);
 
         linesToDrawn.forEach(function(line) {

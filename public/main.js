@@ -20,63 +20,63 @@ function main() {
     const vertexData = [
         
         //Frente
-        -.5, 0.5, 0.5, 0,  //top left
         0.5, 0.5, 0.5, 0,  //top right
-        0.5, -.5, 0.5, 0,  //bottom right
-
         -.5, 0.5, 0.5, 0,  //top left
-        0.5, -.5, 0.5, 0,  //bottom right
+        -.5, -.5, 0.5, 0,  //bottom right
+
+        0.5, 0.5, 0.5, 0,  //top left
         -.5, -.5, 0.5, 0,  //bottom left
+        0.5, -.5, 0.5, 0,  //bottom right
 
 
         // Esquerda
-        -.5, 0.5, -.5, 1,
         -.5, 0.5, 0.5, 1,
-        -.5, -.5, 0.5, 1,
-
         -.5, 0.5, -.5, 1,
-        -.5, -.5, 0.5, 1,
         -.5, -.5, -.5, 1,
+
+        -.5, 0.5, 0.5, 1,
+        -.5, -.5, -.5, 1,
+        -.5, -.5, 0.5, 1,
 
 
         // Atrás
-        0.5, 0.5, -.5, 2,
         -.5, 0.5, -.5, 2,
-        -.5, -.5, -.5, 2,
-
         0.5, 0.5, -.5, 2,
-        -.5, -.5, -.5, 2,
         0.5, -.5, -.5, 2,
+
+        -.5, 0.5, -.5, 2,
+        0.5, -.5, -.5, 2,
+        -.5, -.5, -.5, 2,
 
 
         // Direita
-        0.5, 0.5, 0.5, 3,
         0.5, 0.5, -.5, 3,
-        0.5, -.5, -.5, 3,
-
         0.5, 0.5, 0.5, 3,
-        0.5, -.5, -.5, 3,
         0.5, -.5, 0.5, 3,
+
+        0.5, 0.5, -.5, 3,
+        0.5, -.5, 0.5, 3,
+        0.5, -.5, -.5, 3,
 
 
         // Cima
-        -.5, 0.5, -.5, 4,
         0.5, 0.5, -.5, 4,
-        0.5, 0.5, 0.5, 4,
-
         -.5, 0.5, -.5, 4,
-        0.5, 0.5, 0.5, 4,
         -.5, 0.5, 0.5, 4,
+        
+        0.5, 0.5, -.5, 4,
+        -.5, 0.5, 0.5, 4,
+        0.5, 0.5, 0.5, 4,
 
 
         // Baixo
-        -.5, -.5, 0.5, 5,
         0.5, -.5, 0.5, 5,
-        0.5, -.5, -.5, 5,
-
         -.5, -.5, 0.5, 5,
-        0.5, -.5, -.5, 5,
         -.5, -.5, -.5, 5,
+
+        0.5, -.5, 0.5, 5,
+        -.5, -.5, -.5, 5,
+        0.5, -.5, -.5, 5,
     ];
 
     const textcoordData = repeat(6, [
@@ -214,7 +214,7 @@ function main() {
         gl.useProgram(program);
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         gl.enable(gl.DEPTH_TEST);
-        //gl.enable(gl.CULL_FACE);
+        gl.enable(gl.CULL_FACE);
         camera.ComputeView();
         mat4.multiply(viewProjectionMatrix, camera.projectionMatrix, camera.viewMatrix);
 
@@ -237,10 +237,10 @@ function main() {
             gl.uniform1i(uniformLocation.useTextures, useTextures);
 
             if(wireFrame){
-                gl.drawArrays(gl.LINE_STRIP, 0, vertexData.length / 3);
+                gl.drawArrays(gl.LINE_STRIP, 0, vertexData.length / 4);
             }
             else{
-                gl.drawArrays(gl.TRIANGLES, 0, vertexData.length / 3);
+                gl.drawArrays(gl.TRIANGLES, 0, vertexData.length / 4);
             }
         });
 

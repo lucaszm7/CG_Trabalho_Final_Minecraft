@@ -1,93 +1,142 @@
 class Scene {
-    constructor(gl, program, camera){
+    constructor(gl){
         this._gl = gl;
         this._program = program;
-        this._camera = camera;
+        this._camera = new Camera(75, gl.canvas.width/gl.canvas.height, 1e-4, 10000);
+        this._viewProjectionMatrix;
+        this._mvpMatrix;
         this._objectsToDrawn = [];
         this._linesToDrawn = [];
         this._texture;
         this._cubeData;
         this._lineData;
+        this._texture;
         this._textcoordData;
+        this._uniformLocation;
+
+        this.useTextures = true;
+        this.useWireFrame = false;
+
         this._Init();
     }
     _Init(){
+        let vertexShader = compileShader(this._gl, vertexShaderSource, this._gl.VERTEX_SHADER);
+        let fragmentShader = compileShader(this._gl, fragmentShaderSource, this._gl.FRAGMENT_SHADER);
+        this._program = createProgram(this._gl, vertexShader, fragmentShader);
         this._cubeData = [
         
             //Frente
-            -.5, 0.5, 0.5,  
-            0.5, 0.5, 0.5, 
-            0.5, -.5, 0.5,  
+            -.5, 0.5, 0.5, 0,  //top left
+            0.5, 0.5, 0.5, 0,  //top right
+            0.5, -.5, 0.5, 0,  //bottom right
     
-            -.5, 0.5, 0.5,
-            0.5, -.5, 0.5,
-            -.5, -.5, 0.5,
+            -.5, 0.5, 0.5, 0,  //top left
+            0.5, -.5, 0.5, 0,  //bottom right
+            -.5, -.5, 0.5, 0,  //bottom left
     
     
             // Esquerda
-            -.5, 0.5, -.5,
-            -.5, 0.5, 0.5,
-            -.5, -.5, 0.5,
+            -.5, 0.5, -.5, 1,
+            -.5, 0.5, 0.5, 1,
+            -.5, -.5, 0.5, 1,
     
-            -.5, 0.5, -.5,
-            -.5, -.5, 0.5,
-            -.5, -.5, -.5,
+            -.5, 0.5, -.5, 1,
+            -.5, -.5, 0.5, 1,
+            -.5, -.5, -.5, 1,
     
     
             // Atrás
-            0.5, 0.5, -.5,
-            -.5, 0.5, -.5,
-            -.5, -.5, -.5,
+            0.5, 0.5, -.5, 2,
+            -.5, 0.5, -.5, 2,
+            -.5, -.5, -.5, 2,
     
-            0.5, 0.5, -.5,
-            -.5, -.5, -.5,
-            0.5, -.5, -.5,
+            0.5, 0.5, -.5, 2,
+            -.5, -.5, -.5, 2,
+            0.5, -.5, -.5, 2,
     
     
             // Direita
-            0.5, 0.5, 0.5,
-            0.5, 0.5, -.5,
-            0.5, -.5, -.5,
+            0.5, 0.5, 0.5, 3,
+            0.5, 0.5, -.5, 3,
+            0.5, -.5, -.5, 3,
     
-            0.5, 0.5, 0.5,
-            0.5, -.5, -.5,
-            0.5, -.5, 0.5,
+            0.5, 0.5, 0.5, 3,
+            0.5, -.5, -.5, 3,
+            0.5, -.5, 0.5, 3,
     
     
             // Cima
-            -.5, 0.5, -.5,
-            0.5, 0.5, -.5,
-            0.5, 0.5, 0.5,
+            -.5, 0.5, -.5, 4,
+            0.5, 0.5, -.5, 4,
+            0.5, 0.5, 0.5, 4,
     
-            -.5, 0.5, -.5,
-            0.5, 0.5, 0.5,
-            -.5, 0.5, 0.5,
+            -.5, 0.5, -.5, 4,
+            0.5, 0.5, 0.5, 4,
+            -.5, 0.5, 0.5, 4,
     
     
             // Baixo
-            -.5, -.5, 0.5,
-            0.5, -.5, 0.5,
-            0.5, -.5, -.5,
+            -.5, -.5, 0.5, 5,
+            0.5, -.5, 0.5, 5,
+            0.5, -.5, -.5, 5,
     
-            -.5, -.5, 0.5,
-            0.5, -.5, -.5,
-            -.5, -.5, -.5,
+            -.5, -.5, 0.5, 5,
+            0.5, -.5, -.5, 5,
+            -.5, -.5, -.5, 5,
         ];
         this._lineData = [0,0,0,1,1,1];
         this._textcoordData = repeat(6, [
             0, 0, // top left
-            0.0625, 0, // top right
-            0.0625, 0.0625, // bottom right
+            1, 0, // top right
+            1, 1, // bottom right
         
             0, 0, // top left
-            0.0625, 0.0625, // bottom right
-            0, 0.0625  // bottom left
+            1, 1, // bottom right
+            0, 1  // bottom left
         ]);
+        this._uniformLocation = {
+            mvpMatrix: gl.getUniformLocation(program, `u_mvpMatrix`),
+            useTextures: gl.getUniformLocation(program, `u_useTextures`),
+            face: gl.getUniformLocation(program, `u_face`),
+        };
     }
     AddObject(object){
-
+        this._objectsToDrawn.push(object);
     }
-    DrawnObjects(){
+    Draw(){
+
+        this._gl.useProgram(this._program);
+        this._gl.viewport(0, 0, this._gl.canvas.width, this._gl.canvas.height);
+        this._gl.enable(this._gl.DEPTH_TEST);
+
+        this._camera.ComputeView();
+        mat4.multiply(this._viewProjectionMatrix, this._camera.projectionMatrix, this._camera.viewMatrix);
+
+        this._objectsToDrawn.forEach(function(object) {
+            this._gl.bindVertexArray(object.vao);
+            object.matrixMultiply();
+            mat4.multiply(this._mvpMatrix, this._viewProjectionMatrix, object.modelMatrix);
+            this._gl.uniformMatrix4fv(this._uniformLocation.mvpMatrix, false, this._mvpMatrix);
+            this._gl.uniform2fv(this._uniformLocation.face, object.GetBlockType());
+            this._gl.uniform1i(this._uniformLocation.useTextures, this.useTextures);
+
+            if(this.useWireFrame){
+                this._gl.drawArrays(this._gl.LINE_STRIP, 0, this._cubeData.lenght/4);
+            }
+            else{
+                this._gl.drawArrays(this._gl.TRIANGLES, 0, this._cubeData.lenght/4);
+            }
+        })
+
+        this._linesToDrawn.forEach(function(line) {
+            this._gl.bindVertexArray(line.vao);
+            line.computeLine();
+            mat4.multiply(this._mvpMatrix, this._viewProjectionMatrix, line.modelMatrix);
+            this._gl.uniformMatrix4fv(this._uniformLocation.mvpMatrix, false, this._mvpMatrix);
+            this._gl.uniform1i(this._uniformLocation.useTextures, this.useTextures);
+            this._gl.drawArrays(this._gl.LINES, 0, this._lineData.lenght/3);
+
+        })
 
     }
 }

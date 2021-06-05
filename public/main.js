@@ -30,9 +30,9 @@ function main() {
 
 
         // Esquerda
+        -.5, 0.5, -.5,
         -.5, 0.5, 0.5,
         -.5, -.5, 0.5,
-        -.5, 0.5, -.5,
 
         -.5, 0.5, -.5,
         -.5, -.5, 0.5,
@@ -40,9 +40,9 @@ function main() {
 
 
         // Atrás
+        0.5, 0.5, -.5,
         -.5, 0.5, -.5,
         -.5, -.5, -.5,
-        0.5, 0.5, -.5,
 
         0.5, 0.5, -.5,
         -.5, -.5, -.5,
@@ -50,29 +50,29 @@ function main() {
 
 
         // Direita
+        0.5, 0.5, 0.5,
         0.5, 0.5, -.5,
         0.5, -.5, -.5,
-        0.5, 0.5, 0.5,
 
         0.5, 0.5, 0.5,
-        0.5, -.5, 0.5,
         0.5, -.5, -.5,
+        0.5, -.5, 0.5,
 
 
         // Cima
-        0.5, 0.5, 0.5,
-        0.5, 0.5, -.5,
-        -.5, 0.5, 0.5,
-
-        -.5, 0.5, 0.5,
-        0.5, 0.5, -.5,
         -.5, 0.5, -.5,
+        0.5, 0.5, -.5,
+        0.5, 0.5, 0.5,
+
+        -.5, 0.5, -.5,
+        0.5, 0.5, 0.5,
+        -.5, 0.5, 0.5,
 
 
         // Baixo
+        -.5, -.5, 0.5,
         0.5, -.5, 0.5,
         0.5, -.5, -.5,
-        -.5, -.5, 0.5,
 
         -.5, -.5, 0.5,
         0.5, -.5, -.5,
@@ -80,13 +80,13 @@ function main() {
     ];
 
     const textcoordData = repeat(6, [
-            1, 1, // top right
-            1, 0, // bottom right
-            0, 1, // top left
+            0, 0, // top left
+            0.0625, 0, // top right
+            0.0625, 0.0625, // bottom right
         
-            0, 1, // top left
-            1, 0, // bottom right
-            0, 0  // bottom left
+            0, 0, // top left
+            0.0625, 0.0625, // bottom right
+            0, 0.0625  // bottom left
     ]);
 
     const cubeBuffer = gl.createBuffer();
@@ -102,15 +102,20 @@ function main() {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0,0,1,1,1]), gl.STATIC_DRAW);
 
     const texture = gl.createTexture();
+
+    gl.activeTexture(gl.TEXTURE0 + 0);
+
     gl.bindTexture(gl.TEXTURE_2D, texture);
     
     // Fill the texture with a 1x1 blue pixel.
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-                new Uint8Array([0, 0, 255, 255]));
+                  new Uint8Array([0, 0, 255, 255]));
+
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     
     // Asynchronously load an image
     var image = new Image();
-    image.src = "textures/default_sand.png";
+    image.src = "textures/atlas_minecraft.png";
     image.addEventListener('load', function() {
         // Now that the image has loaded make copy it to the texture.
         gl.bindTexture(gl.TEXTURE_2D, texture);

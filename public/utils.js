@@ -1,5 +1,93 @@
 class Scene {
-    constructor(){
+    constructor(gl, program, camera){
+        this._gl = gl;
+        this._program = program;
+        this._camera = camera;
+        this._objectsToDrawn = [];
+        this._linesToDrawn = [];
+        this._texture;
+        this._cubeData;
+        this._lineData;
+        this._textcoordData;
+        this._Init();
+    }
+    _Init(){
+        this._cubeData = [
+        
+            //Frente
+            -.5, 0.5, 0.5,  
+            0.5, 0.5, 0.5, 
+            0.5, -.5, 0.5,  
+    
+            -.5, 0.5, 0.5,
+            0.5, -.5, 0.5,
+            -.5, -.5, 0.5,
+    
+    
+            // Esquerda
+            -.5, 0.5, -.5,
+            -.5, 0.5, 0.5,
+            -.5, -.5, 0.5,
+    
+            -.5, 0.5, -.5,
+            -.5, -.5, 0.5,
+            -.5, -.5, -.5,
+    
+    
+            // Atrás
+            0.5, 0.5, -.5,
+            -.5, 0.5, -.5,
+            -.5, -.5, -.5,
+    
+            0.5, 0.5, -.5,
+            -.5, -.5, -.5,
+            0.5, -.5, -.5,
+    
+    
+            // Direita
+            0.5, 0.5, 0.5,
+            0.5, 0.5, -.5,
+            0.5, -.5, -.5,
+    
+            0.5, 0.5, 0.5,
+            0.5, -.5, -.5,
+            0.5, -.5, 0.5,
+    
+    
+            // Cima
+            -.5, 0.5, -.5,
+            0.5, 0.5, -.5,
+            0.5, 0.5, 0.5,
+    
+            -.5, 0.5, -.5,
+            0.5, 0.5, 0.5,
+            -.5, 0.5, 0.5,
+    
+    
+            // Baixo
+            -.5, -.5, 0.5,
+            0.5, -.5, 0.5,
+            0.5, -.5, -.5,
+    
+            -.5, -.5, 0.5,
+            0.5, -.5, -.5,
+            -.5, -.5, -.5,
+        ];
+        this._lineData = [0,0,0,1,1,1];
+        this._textcoordData = repeat(6, [
+            0, 0, // top left
+            0.0625, 0, // top right
+            0.0625, 0.0625, // bottom right
+        
+            0, 0, // top left
+            0.0625, 0.0625, // bottom right
+            0, 0.0625  // bottom left
+        ]);
+    }
+    AddObject(object){
+
+    }
+    DrawnObjects(){
 
     }
 }
@@ -8,11 +96,11 @@ class Camera {
     constructor(fieldOfView, aspectRatio, near, far){
         this.up = [0, 1, 0];
         this.viewMatrix = mat4.create();
-        this.viewX = 10;
-        this.viewY = 0;
-        this.viewZ = -10;
-        this.rotationX = 0;
-        this.rotationY = 180;
+        this.viewX = 0;
+        this.viewY = 28;
+        this.viewZ = 10;
+        this.rotationX = -25;
+        this.rotationY = -40;
         this.rotationZ = 0;
         this.projectionMatrix = mat4.create();
         this.fieldOfView = fieldOfView;
@@ -121,6 +209,7 @@ class Object {
         this.colorData = setColorData();
         this.vao = gl.createVertexArray();
         this.modelMatrix = mat4.create();
+        this._blockType;
         this.matrixMultiply();
     };
 
@@ -132,7 +221,7 @@ class Object {
         let positionLocation = gl.getAttribLocation(program, `a_position`);
         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
         gl.enableVertexAttribArray(positionLocation);
-        gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(positionLocation, 4, gl.FLOAT, false, 0, 0);
         
         let textcoordLocation = gl.getAttribLocation(program, `a_textcoord`);
         gl.bindBuffer(gl.ARRAY_BUFFER, textcoordBuffer);
@@ -158,6 +247,13 @@ class Object {
 
     position(){
         return [this.modelMatrix[12],this.modelMatrix[13],this.modelMatrix[14]];
+    }
+
+    SetBlockType(blockType){
+        this._blockType = blockType;
+    }
+    GetBlockType(){
+        return this._blockType;
     }
 }
 
@@ -250,19 +346,25 @@ const vertexShaderSource =
 `#version 300 es
 
 uniform mat4 u_mvpMatrix;
-uniform vec2 u_resolution;
+uniform vec2[6] u_face;
 
-in vec3 a_position;
+in vec4 a_position;
 in vec2 a_textcoord;
 in vec3 a_color;
 
 out vec3 v_color;
 out vec2 v_textcoord;
 
-void main() {
-    gl_Position = u_mvpMatrix * vec4(a_position, 1);
+const float size = 1.0/16.0;
 
-    v_textcoord = a_textcoord;
+void main() {
+    int f = int(a_position.w);
+    gl_Position = u_mvpMatrix * vec4(a_position.x, a_position.y, a_position.z, 1);
+
+    float u = (u_face[f].x + a_textcoord.x) * size;
+    float v = (u_face[f].y + a_textcoord.y) * size;
+
+    v_textcoord = vec2(u,v);
     v_color = a_color;
 }
 `;

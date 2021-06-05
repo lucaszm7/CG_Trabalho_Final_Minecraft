@@ -17,6 +17,10 @@ class Scene {
         this.useTextures = true;
         this.useWireFrame = false;
 
+        this._grassBlock = [3,0, 3,0, 3,0, 3,0, 2,9, 2,0];
+        this._TNTBlock = [8,0, 8,0, 8,0, 8,0, 9,0, 10,0];
+        this._sandBlock = [2,1, 2,1, 2,1, 2,1, 2,1, 2,1, 2,1]
+
         this._Init();
     }
     _Init(){
@@ -26,63 +30,63 @@ class Scene {
         this._cubeData = [
         
             //Frente
-            -.5, 0.5, 0.5, 0,  //top left
             0.5, 0.5, 0.5, 0,  //top right
-            0.5, -.5, 0.5, 0,  //bottom right
-    
             -.5, 0.5, 0.5, 0,  //top left
-            0.5, -.5, 0.5, 0,  //bottom right
+            -.5, -.5, 0.5, 0,  //bottom right
+    
+            0.5, 0.5, 0.5, 0,  //top left
             -.5, -.5, 0.5, 0,  //bottom left
+            0.5, -.5, 0.5, 0,  //bottom right
     
     
             // Esquerda
-            -.5, 0.5, -.5, 1,
             -.5, 0.5, 0.5, 1,
-            -.5, -.5, 0.5, 1,
-    
             -.5, 0.5, -.5, 1,
-            -.5, -.5, 0.5, 1,
             -.5, -.5, -.5, 1,
+    
+            -.5, 0.5, 0.5, 1,
+            -.5, -.5, -.5, 1,
+            -.5, -.5, 0.5, 1,
     
     
             // Atrás
-            0.5, 0.5, -.5, 2,
             -.5, 0.5, -.5, 2,
-            -.5, -.5, -.5, 2,
-    
             0.5, 0.5, -.5, 2,
-            -.5, -.5, -.5, 2,
             0.5, -.5, -.5, 2,
+    
+            -.5, 0.5, -.5, 2,
+            0.5, -.5, -.5, 2,
+            -.5, -.5, -.5, 2,
     
     
             // Direita
-            0.5, 0.5, 0.5, 3,
             0.5, 0.5, -.5, 3,
-            0.5, -.5, -.5, 3,
-    
             0.5, 0.5, 0.5, 3,
-            0.5, -.5, -.5, 3,
             0.5, -.5, 0.5, 3,
+    
+            0.5, 0.5, -.5, 3,
+            0.5, -.5, 0.5, 3,
+            0.5, -.5, -.5, 3,
     
     
             // Cima
-            -.5, 0.5, -.5, 4,
             0.5, 0.5, -.5, 4,
-            0.5, 0.5, 0.5, 4,
-    
             -.5, 0.5, -.5, 4,
-            0.5, 0.5, 0.5, 4,
             -.5, 0.5, 0.5, 4,
+            
+            0.5, 0.5, -.5, 4,
+            -.5, 0.5, 0.5, 4,
+            0.5, 0.5, 0.5, 4,
     
     
             // Baixo
-            -.5, -.5, 0.5, 5,
             0.5, -.5, 0.5, 5,
-            0.5, -.5, -.5, 5,
-    
             -.5, -.5, 0.5, 5,
-            0.5, -.5, -.5, 5,
             -.5, -.5, -.5, 5,
+    
+            0.5, -.5, 0.5, 5,
+            -.5, -.5, -.5, 5,
+            0.5, -.5, -.5, 5,
         ];
         this._lineData = [0,0,0,1,1,1];
         this._textcoordData = repeat(6, [
@@ -146,10 +150,10 @@ class Camera {
         this.up = [0, 1, 0];
         this.viewMatrix = mat4.create();
         this.viewX = 0;
-        this.viewY = 28;
+        this.viewY = 0;
         this.viewZ = 10;
-        this.rotationX = -25;
-        this.rotationY = -40;
+        this.rotationX = 0;
+        this.rotationY = 0;
         this.rotationZ = 0;
         this.projectionMatrix = mat4.create();
         this.fieldOfView = fieldOfView;
@@ -281,7 +285,13 @@ class Object {
         mat4.scale(this.modelMatrix, auxMatrix, [this.scaleX,this.scaleY,this.scaleZ]);
     };
 
-    position(){
+    SetPosition(x, y, z){
+        this.translationX = x;
+        this.translationY = y;
+        this.translationZ = z;
+    }
+
+    GetPosition(){
         return [this.modelMatrix[12],this.modelMatrix[13],this.modelMatrix[14]];
     }
 

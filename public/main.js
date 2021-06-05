@@ -90,6 +90,7 @@ function main() {
     ]);
 
     const grassBlock = [3,0, 3,0, 3,0, 3,0, 2,9, 2,0];
+    const stoneBlock = [0,1, 0,1, 0,1, 0,1, 0,1, 0,1];
     const TNTBlock = [8,0, 8,0, 8,0, 8,0, 9,0, 10,0];
     const sandBlock = [2,1, 2,1, 2,1, 2,1, 2,1, 2,1, 2,1]
 
@@ -141,23 +142,48 @@ function main() {
     const camera = new Camera(75, gl.canvas.width/gl.canvas.height, 1e-4, 10000);
     eventsListeners(camera, linesToDrawn);
 
+    const chunks = []
+    var noiseScale = .03;
+
     for (let i = 0; i < 64; ++i){
         for (let j=0; j < 64; ++j){
-            let initialObject = new Object(gl);
-            objectsToDraw.push(initialObject);
-            initialObject.bindAttribuites(program, gl, cubeBuffer, textcoordBuffer);
-            initialObject.translationX = i;
-            initialObject.translationZ = -j;
-            initialObject.translationY = Math.floor(16 * noise.perlin2(i/32, j/32));
-            if(initialObject.translationY < 0){
-                initialObject.SetBlockType(sandBlock);
+            let block = new Object(gl);
+            objectsToDraw.push(block);
+            block.bindAttribuites(program, gl, cubeBuffer, textcoordBuffer);
+            block.SetPosition(i, Math.floor(32 * ((noise.perlin2(i*noiseScale, j*noiseScale)) + 1)), -j);
+
+            if(block.translationY < 32){
+                block.SetBlockType(sandBlock);
             }
             else{
-                initialObject.SetBlockType(grassBlock);
+                block.SetBlockType(grassBlock);
             }
-            initialObject.matrixMultiply();
+            block.matrixMultiply();
         }
     }
+
+    // for (let i = 0; i < 32; ++i){
+    //     for (let j=0; j < 32; ++j){
+
+    //         for(let k = 0; k < 16; ++k){
+    //             if(noise.perlin3(i * noiseScale, j * noiseScale, k * noiseScale) > 0){
+
+    //                 let block = new Object(gl);
+    //                 objectsToDraw.push(block);
+    //                 block.bindAttribuites(program, gl, cubeBuffer, textcoordBuffer);
+    //                 block.SetPosition(i-1, k, -j+1);
+    //                 block.matrixMultiply()
+    //                 if(j > 3){
+    //                     block.SetBlockType(grassBlock);
+    //                 }
+    //                 else {
+    //                     block.SetBlockType(stoneBlock);
+    //                 }
+
+    //             }
+    //         }
+    //     }
+    // }
 
     for (let i = 0; i < 5; ++i){
         for (let j=0; j < 5; ++j){
@@ -202,6 +228,12 @@ function main() {
             linesToDrawn[0].setInitialPos(camera.Position());
             linesToDrawn[0].setLenght(20);
         }
+        if(event.key == "i"){
+            noiseScale += .1;
+        }
+        if(event.key == "o"){
+            noiseScale -= .1;
+        }
     });
     
     addEventListener('keyup', (event) => {
@@ -230,7 +262,7 @@ function main() {
         objectsToDraw.forEach(function(objeto) {
             
             gl.bindVertexArray(objeto.vao);
-            objeto.matrixMultiply();
+            //objeto.matrixMultiply();
             mat4.multiply(mvpMatrix, viewProjectionMatrix, objeto.modelMatrix);
             gl.uniformMatrix4fv(uniformLocation.mvpMatrix, false, mvpMatrix);
             gl.uniform2fv(uniformLocation.face, objeto.GetBlockType());

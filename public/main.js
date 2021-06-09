@@ -138,9 +138,16 @@ function main() {
 
 
 
+    const lineVAO = gl.createVertexArray();
+    gl.bindVertexArray(lineVAO);
+
     const lineBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0,0,1,1,1]), gl.STATIC_DRAW);
+    
+    gl.enableVertexAttribArray(positionLocation);
+    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+
 
     const texture = gl.createTexture();
 
@@ -250,7 +257,6 @@ function main() {
         for (let j=0; j < 5; ++j){
             let initialLine = new Line(gl);
             linesToDrawn.push(initialLine);
-            initialLine.bindAttribuites(program, gl, lineBuffer);
             initialLine.setInitialPos([i, 0, -j]);
             initialLine.setLenght(Math.floor(10*noise.perlin2(i/5, j/5)));
             initialLine.computeLine();
@@ -311,8 +317,8 @@ function main() {
         camera.ComputeView();
         mat4.multiply(viewProjectionMatrix, camera.projectionMatrix, camera.viewMatrix);
 
+        gl.bindVertexArray(lineVAO);
         linesToDrawn.forEach(function(line) {
-            gl.bindVertexArray(line.vao);
             line.computeLine();
             mat4.multiply(mvpMatrix, viewProjectionMatrix, line.modelMatrix);
             gl.uniformMatrix4fv(uniformLocation.mvpMatrix, false, mvpMatrix);

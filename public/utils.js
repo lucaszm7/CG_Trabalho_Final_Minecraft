@@ -245,35 +245,10 @@ class Object {
         this.scaleX = 1;
         this.scaleY = 1;
         this.scaleZ = 1;
-        this.colorData = setColorData();
-        this.vao = gl.createVertexArray();
         this.modelMatrix = mat4.create();
         this._blockType;
         this.matrixMultiply();
     };
-
-    // //For n attribuites: create another paramenter "indexAttribuites"
-    // //that is a list with the string with the names of all attribuites;
-    // bindAttribuites(program, gl, positionBuffer, textcoordBuffer){
-    //     gl.bindVertexArray(this.vao);
-
-    //     let positionLocation = gl.getAttribLocation(program, `a_position`);
-    //     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    //     gl.enableVertexAttribArray(positionLocation);
-    //     gl.vertexAttribPointer(positionLocation, 4, gl.FLOAT, false, 0, 0);
-        
-    //     let textcoordLocation = gl.getAttribLocation(program, `a_textcoord`);
-    //     gl.bindBuffer(gl.ARRAY_BUFFER, textcoordBuffer);
-    //     gl.enableVertexAttribArray(textcoordLocation);
-    //     gl.vertexAttribPointer(textcoordLocation, 2, gl.FLOAT, true, 0, 0);
-
-    //     let colorBuffer = gl.createBuffer();
-    //     let colorLocation = gl.getAttribLocation(program, `a_color`);
-    //     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    //     gl.enableVertexAttribArray(colorLocation);
-    //     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.colorData), gl.STATIC_DRAW);
-    //     gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
-    // };
 
     matrixMultiply() {
         let auxMatrix = mat4.create();
@@ -315,14 +290,6 @@ class Line {
         this.vao = gl.createVertexArray();
         this.modelMatrix = mat4.create();
     }
-    bindAttribuites(program, gl, lineBuffer){
-        gl.bindVertexArray(this.vao);
-        let positionLocation = gl.getAttribLocation(program, `a_position`);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);
-        gl.enableVertexAttribArray(positionLocation);
-        gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-    };
     computeLine(){
         let auxMatrix = mat4.create();
         mat4.translate(auxMatrix, auxMatrix, this.initialPos);

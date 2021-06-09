@@ -105,6 +105,7 @@ function main() {
     const TNTBlock = [8,0, 8,0, 8,0, 8,0, 9,0, 10,0];
     const sandBlock = [2,1, 2,1, 2,1, 2,1, 2,1, 2,1];
     const woodBlock = [4,1, 4,1, 4,1, 4,1, 5,1, 5,1];
+    const leafBlock = [5,3, 5,3, 5,3, 5,3, 5,3, 5,3];
 
     const cubeVAO = gl.createVertexArray();
 
@@ -218,34 +219,53 @@ function main() {
     for (let i = 0; i < CHUNK_X; ++i){
         for(let k = 0; k < CHUNK_Z; ++k){
             for (let j=highest[i][k]; j > 0; --j){
-                if(noise.simplex3(i * noiseScale, j * noiseScale, k * noiseScale) > -.5){
-                    chunk[i][j][k] = 1;
-                    let block = new Object(gl);
-                    objectsToDraw.push(block);
-                    //block.bindAttribuites(program, gl, cubeBuffer, textcoordBuffer);
-                    block.SetPosition(i, j, -k);
-                    block.matrixMultiply()
-                    if(j > 3){
-                        block.SetBlockType(grassBlock);
-                    }
-                    else {
-                        block.SetBlockType(sandBlock);
-                    }
-
+                chunk[i][j][k] = 1;
+                let block = new Object(gl);
+                objectsToDraw.push(block);
+                block.SetPosition(i, j, -k);
+                block.matrixMultiply()
+                if(j > 3){
+                    block.SetBlockType(grassBlock);
+                }
+                else if(j < 3 && highest[i][k] < 3) {
+                    block.SetBlockType(sandBlock);
                 }
                 else{
-                    chunk[i][j][k] = 0;
+                    block.SetBlockType(stoneBlock)
                 }
-                if(j==highest[i][k]){
-                    if(Math.random() <= 0.01){
+
+                //Make a Tree
+                if(j==highest[i][k] && highest[i][k] > 3){
+                    if(Math.random() <= 0.003){
+
+                        //Wood
                         for(let w=0; w<4;w++){
                             chunk[i][j+1+w][k] = 1;
                             let block = new Object(gl);
                             objectsToDraw.push(block);
-                            //block.bindAttribuites(program, gl, cubeBuffer, textcoordBuffer);
                             block.SetPosition(i, j+1+w, -k);
                             block.matrixMultiply()
                             block.SetBlockType(woodBlock);
+                        }
+
+                        //Leafs
+                        for(let m=-2; m<=2; ++m){
+                            for(let n=-2; n<=2; ++n){
+                                let block = new Object(gl);
+                                objectsToDraw.push(block);
+                                block.SetPosition(m+i, j+4, -k+n);
+                                block.matrixMultiply()
+                                block.SetBlockType(leafBlock);
+                            }
+                            for(let n=-1; n<=1; ++n){
+                                if(m==0 || n==0){
+                                    let block = new Object(gl);
+                                    objectsToDraw.push(block);
+                                    block.SetPosition(m+i, j+5, -k+n);
+                                    block.matrixMultiply()
+                                    block.SetBlockType(leafBlock);
+                                }
+                            }
                         }
                     }
                 }

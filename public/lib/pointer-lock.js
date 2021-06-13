@@ -37,10 +37,19 @@ function eventsListeners(camera, linesToDrawn, wireFrame, useTextures){
         else{
             camera.rotationX += (y/2) * -1;
         }
-        if(camera.rotationY >= 360 || camera.rotationY <= -360){
+
+        if(camera.rotationY + (x/2) * -1 >= 360 || camera.rotationY + (x/2) * -1 <= -360){
+            camera.rotationY += (x/2) * -1;
             camera.rotationY -= 360;
         }
+        else{
+            camera.rotationY += (x/2) * -1;
+        }
+
+        // if(camera.rotationY >= 180 || camera.rotationY <= -180){
+        //     camera.rotationY -= 360;
+        // }
         
-        camera.rotationY += (x/2) * -1;
+        // camera.rotationY += (x/2) * -1;
     }
 }

@@ -306,7 +306,7 @@ function main() {
             camera.translationE();
         }
         if(event.key == "k"){
-            console.log(camera.Position());
+            console.log(formatedFloat(camera.Position()[0]), formatedFloat(camera.Position()[1]), formatedFloat(camera.Position()[2]));
         }
         if(event.key == "h"){
             wireFrame = !(wireFrame);
@@ -315,16 +315,8 @@ function main() {
             useTextures = !(useTextures);
         }
         if(event.key == "l"){
-            let line = new Line(camera.Position(), [camera.Normal()[0]*5, camera.Normal()[1]*5, camera.Normal()[2]*5]);
-            console.log(camera.Position());
-            console.log(camera.Normal());
-            console.log(camera.NormalPos());
+            let line = new Line(camera.Position(), [camera.Normal()[0]+camera.Position()[0], camera.Normal()[1]+camera.Position()[1], camera.Normal()[2]+camera.Position()[2]]);
             console.log(line);
-            linesToDrawn.push(line);
-        }
-        if(event.key == "i"){
-            mat4.multiply(mvpMatrix, viewProjectionMatrix, objectsToDraw[0].modelMatrix);
-            console.log(mvpMatrix);
         }
     });
     
@@ -346,7 +338,7 @@ function main() {
         camera.ComputeView();
         camera.ComputeViewProjection();
 
-        let debugLine = new Line(camera.Position(), [-camera.Normal()[0]+camera.Position()[0], -camera.Normal()[1]+camera.Position()[1], -camera.Normal()[2]+camera.Position()[2]])
+        //let debugLine = new Line(camera.Position(), [-camera.Normal()[0]+camera.Position()[0], -camera.Normal()[1]+camera.Position()[1], -camera.Normal()[2]+camera.Position()[2]])
         //let debugLineSide = new Line(camera.Position(), camera.NormalSide())
 
         gl.bindVertexArray(lineVAO);

@@ -191,24 +191,24 @@ class Camera {
         mat4.invert(auxMatrix, auxMatrix);
         return [auxMatrix[12],auxMatrix[13],auxMatrix[14]];
     }
-    NormalPos(){
-        let normal = vec4.create();
-        normal[2] = 1;
-        vec4.transformMat4(normal, normal, this.cameraMatrix);
-        return normal;
-    }
+
     Normal(){
         let normal = vec4.create();
         normal[2] = 1;
-        vec4.transformMat4(normal, normal, this.viewMatrix);
-        vec4.normalize(normal, normal);
+        vec4.transformMat4(normal, normal, this.cameraMatrix);
+        normal[0] *= -1;
+        normal[1] *= -1;
+        normal[2] *= -1;
         return normal;
     }
 
     NormalSide(){
         let normal = vec4.create();
         normal[0] = 1;
-        vec4.transformMat4(normal, normal, this.viewMatrix);
+        vec4.transformMat4(normal, normal, this.cameraMatrix);
+        normal[0] *= -1;
+        normal[1] *= -1;
+        normal[2] *= -1;
         return normal;
     }
 
@@ -216,24 +216,24 @@ class Camera {
         let normal = this.Normal();
         this.viewX += (normal[0] * velocity);
         this.viewY += (normal[1] * velocity);
-        this.viewZ -= (normal[2] * velocity);
+        this.viewZ += (normal[2] * velocity);
     }
     translationS(velocity=0.2){
         let normal = this.Normal();
         this.viewX -= (normal[0] * velocity);
         this.viewY -= (normal[1] * velocity);
-        this.viewZ += (normal[2] * velocity);
+        this.viewZ -= (normal[2] * velocity);
     }
     translationD(velocity=0.2){
         let normal = this.NormalSide();
-        this.viewX += (normal[0] * velocity);
-        this.viewY += (normal[1] * velocity);
+        this.viewX -= (normal[0] * velocity);
+        this.viewY -= (normal[1] * velocity);
         this.viewZ -= (normal[2] * velocity);
     }
     translationA(velocity=0.2){
         let normal = this.NormalSide();
-        this.viewX -= (normal[0] * velocity);
-        this.viewY -= (normal[1] * velocity);
+        this.viewX += (normal[0] * velocity);
+        this.viewY += (normal[1] * velocity);
         this.viewZ += (normal[2] * velocity);
     }
     translationQ(velocity=0.2){
@@ -314,6 +314,9 @@ class Line {
     }
 }
 
+function formatedFloat(x) {
+    return Number.parseFloat(x).toFixed(2);
+}
 function repeat(n, pattern){
     return [...Array(n)].reduce(sum => sum.concat(pattern), []);
 }

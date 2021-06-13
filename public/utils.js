@@ -148,7 +148,9 @@ class Scene {
 class Camera {
     constructor(fieldOfView, aspectRatio, near, far){
         this.up = [0, 1, 0];
+        this.cameraMatrix;
         this.viewMatrix = mat4.create();
+        this.viewProjectionMatrix = mat4.create();
         this.viewX = 0;
         this.viewY = 0;
         this.viewZ = 10;
@@ -174,11 +176,14 @@ class Camera {
     }
 
     ComputeView(){
-        var cameraMatrix = mat4.create();
-        mat4.translate(cameraMatrix, cameraMatrix, [this.viewX, this.viewY, this.viewZ]);
-        mat4.rotateY(cameraMatrix, cameraMatrix, degToRad(this.rotationY));
-        mat4.rotateX(cameraMatrix, cameraMatrix, degToRad(this.rotationX));        
-        mat4.invert(this.viewMatrix, cameraMatrix);
+        this.cameraMatrix = mat4.create();
+        mat4.translate(this.cameraMatrix, this.cameraMatrix, [this.viewX, this.viewY, this.viewZ]);
+        mat4.rotateY(this.cameraMatrix, this.cameraMatrix, degToRad(this.rotationY));
+        mat4.rotateX(this.cameraMatrix, this.cameraMatrix, degToRad(this.rotationX));        
+        mat4.invert(this.viewMatrix, this.cameraMatrix);
+    }
+    ComputeViewProjection(){
+        mat4.multiply(this.viewProjectionMatrix, this.projectionMatrix, this.viewMatrix);
     }
     Position(){
         let auxMatrix = mat4.create();
@@ -186,10 +191,17 @@ class Camera {
         mat4.invert(auxMatrix, auxMatrix);
         return [auxMatrix[12],auxMatrix[13],auxMatrix[14]];
     }
+    NormalPos(){
+        let normal = vec4.create();
+        normal[2] = 1;
+        vec4.transformMat4(normal, normal, this.cameraMatrix);
+        return normal;
+    }
     Normal(){
         let normal = vec4.create();
         normal[2] = 1;
         vec4.transformMat4(normal, normal, this.viewMatrix);
+        vec4.normalize(normal, normal);
         return normal;
     }
 
@@ -235,7 +247,7 @@ class Camera {
 }
 
 class Object {
-    constructor(gl){
+    constructor(){
         this.translationX = 0;
         this.translationY = 0;
         this.translationZ = 0;
@@ -283,27 +295,22 @@ class Player {
     }
 }
 class Line {
-    constructor(gl){
-        this.initialPos = vec3.create();
-        this.finalPos = vec3.fromValues(1,1,1);
-        this.direction = vec3.create;
-        this.vao = gl.createVertexArray();
+    constructor(initialPos, finalPos){
+        this.initialPos = initialPos;
+        this.finalPos = finalPos;
         this.modelMatrix = mat4.create();
+        linesToDrawn.push(this);
+        this.computeLine();
     }
     computeLine(){
         let auxMatrix = mat4.create();
+        let finalPos = vec3.fromValues((this.finalPos[0]-this.initialPos[0]),(this.finalPos[1]-this.initialPos[1]),(this.finalPos[2]-this.initialPos[2]));
         mat4.translate(auxMatrix, auxMatrix, this.initialPos);
-        mat4.scale(this.modelMatrix, auxMatrix, this.finalPos);
+        mat4.scale(this.modelMatrix, auxMatrix, finalPos);
     }
-    setInitialPos(pos){
-        this.initialPos[0] = pos[0];
-        this.initialPos[1] = pos[1];
-        this.initialPos[2] = pos[2];
-    }
-    setLenght(lenght){
-        this.finalPos[0] = lenght;
-        this.finalPos[1] = lenght;
-        this.finalPos[2] = lenght;
+    Lenght(){
+        let lenght = Math.sqrt((this.finalPos[0]-this.initialPos[0])**2+(this.finalPos[1]-this.initialPos[1])**2+(this.finalPos[2]-this.initialPos[2])**2)
+        return lenght;
     }
 }
 

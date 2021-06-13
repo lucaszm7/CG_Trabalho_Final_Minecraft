@@ -6,9 +6,9 @@ const vec4 = glMatrix.vec4;
 const objectsToDraw  = []
 const linesToDrawn = []
 
-const CHUNK_X = 32;
-const CHUNK_Y = 16;
-const CHUNK_Z = 32;
+const CHUNK_X = 64;
+const CHUNK_Y = 8;
+const CHUNK_Z = 64;
 
 function main() {
 
@@ -149,6 +149,13 @@ function main() {
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
 
+    const colorLineBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorLineBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 255, 255]), gl.STATIC_DRAW);
+
+    gl.enableVertexAttribArray(colorLocation);
+    gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
+
 
     const texture = gl.createTexture();
 
@@ -171,7 +178,7 @@ function main() {
         gl.generateMipmap(gl.TEXTURE_2D);
     });
     
-    const viewProjectionMatrix = mat4.create();
+    //const viewProjectionMatrix = mat4.create();
     const mvpMatrix = mat4.create();
     const uniformLocation = {
         mvpMatrix: gl.getUniformLocation(program, `u_mvpMatrix`),
@@ -201,7 +208,7 @@ function main() {
 
     for (let i = 0; i < CHUNK_X; ++i){
         for (let k=0; k < CHUNK_Z; ++k){
-            let block = new Object(gl);
+            let block = new Object();
             objectsToDraw.push(block);
             //block.bindAttribuites(program, gl, cubeBuffer, textcoordBuffer);
             block.SetPosition(i, Math.floor(CHUNK_Y/2 * ((noise.simplex2(i*noiseScale, k*noiseScale)) + 1)), -k);
@@ -220,7 +227,7 @@ function main() {
         for(let k = 0; k < CHUNK_Z; ++k){
             for (let j=highest[i][k]; j > 0; --j){
                 chunk[i][j][k] = 1;
-                let block = new Object(gl);
+                let block = new Object();
                 objectsToDraw.push(block);
                 block.SetPosition(i, j, -k);
                 block.matrixMultiply()
@@ -241,7 +248,7 @@ function main() {
                         //Wood
                         for(let w=0; w<4;w++){
                             chunk[i][j+1+w][k] = 1;
-                            let block = new Object(gl);
+                            let block = new Object();
                             objectsToDraw.push(block);
                             block.SetPosition(i, j+1+w, -k);
                             block.matrixMultiply()
@@ -251,7 +258,7 @@ function main() {
                         //Leafs
                         for(let m=-2; m<=2; ++m){
                             for(let n=-2; n<=2; ++n){
-                                let block = new Object(gl);
+                                let block = new Object();
                                 objectsToDraw.push(block);
                                 block.SetPosition(m+i, j+4, -k+n);
                                 block.matrixMultiply()
@@ -259,7 +266,7 @@ function main() {
                             }
                             for(let n=-1; n<=1; ++n){
                                 if(m==0 || n==0){
-                                    let block = new Object(gl);
+                                    let block = new Object();
                                     objectsToDraw.push(block);
                                     block.SetPosition(m+i, j+5, -k+n);
                                     block.matrixMultiply()
@@ -273,13 +280,9 @@ function main() {
         }
     }
 
-    for (let i = 0; i < 5; ++i){
-        for (let j=0; j < 5; ++j){
-            let initialLine = new Line(gl);
-            linesToDrawn.push(initialLine);
-            initialLine.setInitialPos([i, 0, -j]);
-            initialLine.setLenght(Math.floor(10*noise.perlin2(i/5, j/5)));
-            initialLine.computeLine();
+    for (let i = 1; i < 5; ++i){
+        for (let j=1; j < 5; ++j){
+            let initialLine = new Line([i, 0, -j], [32,16,-12]);
         }
     }
 
@@ -312,14 +315,16 @@ function main() {
             useTextures = !(useTextures);
         }
         if(event.key == "l"){
-            linesToDrawn[0].setInitialPos(camera.Position());
-            linesToDrawn[0].setLenght(20);
+            let line = new Line(camera.Position(), [camera.Normal()[0]*5, camera.Normal()[1]*5, camera.Normal()[2]*5]);
+            console.log(camera.Position());
+            console.log(camera.Normal());
+            console.log(camera.NormalPos());
+            console.log(line);
+            linesToDrawn.push(line);
         }
         if(event.key == "i"){
-            noiseScale += .1;
-        }
-        if(event.key == "o"){
-            noiseScale -= .1;
+            mat4.multiply(mvpMatrix, viewProjectionMatrix, objectsToDraw[0].modelMatrix);
+            console.log(mvpMatrix);
         }
     });
     
@@ -327,20 +332,26 @@ function main() {
         //console.log("Key up: " + event.key);
     });
 
+    gl.useProgram(program);
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+
+    // const objectsToDrawSorted = objectsToDraw.sort((a, b) => a.translationZ < b.translationZ)
+    // console.log(objectsToDrawSorted);
+
     requestAnimationFrame(drawScene);
     function drawScene () {
 
-        gl.useProgram(program);
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-        gl.enable(gl.DEPTH_TEST);
-        gl.enable(gl.CULL_FACE);
         camera.ComputeView();
-        mat4.multiply(viewProjectionMatrix, camera.projectionMatrix, camera.viewMatrix);
+        camera.ComputeViewProjection();
+
+        let debugLine = new Line(camera.Position(), [-camera.Normal()[0]+camera.Position()[0], -camera.Normal()[1]+camera.Position()[1], -camera.Normal()[2]+camera.Position()[2]])
+        //let debugLineSide = new Line(camera.Position(), camera.NormalSide())
 
         gl.bindVertexArray(lineVAO);
         linesToDrawn.forEach(function(line) {
-            line.computeLine();
-            mat4.multiply(mvpMatrix, viewProjectionMatrix, line.modelMatrix);
+            mat4.multiply(mvpMatrix, camera.viewProjectionMatrix, line.modelMatrix);
             gl.uniformMatrix4fv(uniformLocation.mvpMatrix, false, mvpMatrix);
             gl.uniform1i(uniformLocation.useTextures, 0);
             gl.drawArrays(gl.LINES, 0, 2);
@@ -348,17 +359,19 @@ function main() {
 
         gl.bindVertexArray(cubeVAO);
         objectsToDraw.forEach(function(objeto) {
-            mat4.multiply(mvpMatrix, viewProjectionMatrix, objeto.modelMatrix);
-            gl.uniformMatrix4fv(uniformLocation.mvpMatrix, false, mvpMatrix);
-            gl.uniform2fv(uniformLocation.face, objeto.GetBlockType());
-            gl.uniform1i(uniformLocation.useTextures, useTextures);
+            //if((Math.abs(objeto.GetPosition()[0] - camera.Position()[0]) < 64) && (Math.abs(objeto.GetPosition()[1] - camera.Position()[1]) < 8) && (Math.abs(objeto.GetPosition()[2] - camera.Position()[2]) < 64)){
+                mat4.multiply(mvpMatrix, camera.viewProjectionMatrix, objeto.modelMatrix);
+                gl.uniformMatrix4fv(uniformLocation.mvpMatrix, false, mvpMatrix);
+                gl.uniform2fv(uniformLocation.face, objeto.GetBlockType());
+                gl.uniform1i(uniformLocation.useTextures, useTextures);
 
-            if(wireFrame){
-                gl.drawArrays(gl.LINE_STRIP, 0, vertexData.length / 4);
-            }
-            else{
-                gl.drawArrays(gl.TRIANGLES, 0, vertexData.length / 4);
-            }
+                if(wireFrame){
+                    gl.drawArrays(gl.LINE_STRIP, 0, vertexData.length / 4);
+                }
+                else{
+                    gl.drawArrays(gl.TRIANGLES, 0, vertexData.length / 4);
+                }
+            //}
         });
 
         requestAnimationFrame(drawScene);

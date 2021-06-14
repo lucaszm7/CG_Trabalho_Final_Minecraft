@@ -373,13 +373,13 @@ function main() {
                 }
             });
             if(closestDistance < 1){
-                //let distanceBetween = [Math.floor(camera.Position()[0] - objectsToDraw[closestIndex].GetPosition()[0]), Math.floor(camera.Position()[1] - objectsToDraw[closestIndex].GetPosition()[1]), Math.floor(camera.Position()[2] - objectsToDraw[closestIndex].GetPosition()[2])];
-                //console.log(distanceBetween);
+                let distanceBetween = [Math.round(camera.Position()[0] + camera.Normal()[0] - objectsToDraw[closestIndex].GetPosition()[0]), Math.round(camera.Position()[1] + camera.Normal()[1] - objectsToDraw[closestIndex].GetPosition()[1]), Math.round(camera.Position()[2] + camera.Normal()[2] - objectsToDraw[closestIndex].GetPosition()[2])];
+                console.log(distanceBetween);
+                if(distanceBetween[0] == 0 && distanceBetween[1] == 0 && distanceBetween[2] == 0){
+                    console.log("Object Inside other Object");
+                }
                 let block = new Object(Math.round(camera.Normal()[0]+camera.Position()[0]), Math.round(camera.Normal()[1]+camera.Position()[1]), Math.round(camera.Normal()[2]+camera.Position()[2]));
                 block.SetBlockType(TNTBlock);
-                if(block.GetPosition() == objectsToDraw[closestIndex].GetPosition()){
-                    console.log("Its Equal!!!!!!");
-                }
                 objectsToDraw.push(block);
                 console.log(formatedFloat(block.GetPosition()[0]), formatedFloat(block.GetPosition()[1]), formatedFloat(block.GetPosition()[2]))
             }

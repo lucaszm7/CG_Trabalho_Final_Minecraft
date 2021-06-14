@@ -328,10 +328,28 @@ function main() {
         console.log("Key up: " + event.button);
         if(event.button === 0){
             //Remove 1 bloco que está apontando
-            let line = new Line(camera.Position(), [camera.Normal(2)[0]+camera.Position()[0], camera.Normal(2)[1]+camera.Position()[1], camera.Normal(2)[2]+camera.Position()[2]]);
+            let line = new Line(camera.Position(), [camera.Normal(10)[0]+camera.Position()[0], camera.Normal(10)[1]+camera.Position()[1], camera.Normal(10)[2]+camera.Position()[2]]);
+            let eq = equacaoDaReta(camera.Position(), [camera.Normal(2)[0]+camera.Position()[0], camera.Normal(2)[1]+camera.Position()[1], camera.Normal(2)[2]+camera.Position()[2]]);
+            let closestIndex = [];
+            objectsToDraw.forEach(function(objeto, index, object) {
+                if(distancia(camera.Position(), objeto.GetPosition()) <= 3){
+                    let d = distanciaPontoReta(eq, objeto.GetPosition());
+                    if (d < 3){
+                        closestIndex.push(index);
+                    }
+                }
+            });
+            closestIndex.forEach(function(objeto, index, object){
+                console.log(objeto);
+                objectsToDraw.splice(objeto, 1);
+            })
+            //console.log(d);
         }
         else if(event.button === 2){
             //Coloca um bloco aonde está apontando
+            let d = distanciaPontoReta([4, 6, 2], [3, -6]);
+            console.log(d);
+            console.log(distancia(camera.Position(), objectsToDraw[0].GetPosition()));
         }
     });
 
@@ -343,7 +361,7 @@ function main() {
     // console.log(objectsToDrawSorted);
 
     requestAnimationFrame(drawScene);
-    function drawScene () {
+    function drawScene (time) {
 
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         camera.ComputeView();

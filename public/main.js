@@ -225,7 +225,7 @@ function main() {
 
     for (let i = 0; i < CHUNK_X; ++i){
         for(let k = 0; k < CHUNK_Z; ++k){
-            for (let j=highest[i][k]; j > 0; --j){
+            for (let j=highest[i][k] - 1; j > 0; --j){
                 chunk[i][j][k] = 1;
                 let block = new Object();
                 objectsToDraw.push(block);
@@ -280,11 +280,12 @@ function main() {
         }
     }
 
-    for (let i = 1; i < 5; ++i){
-        for (let j=1; j < 5; ++j){
-            let initialLine = new Line([i, 0, -j], [32,16,-12]);
-        }
-    }
+    // Debug Lines
+    // for (let i = 1; i < 5; ++i){
+    //     for (let j=1; j < 5; ++j){
+    //         let initialLine = new Line([i, 0, -j], [32,16,-12]);
+    //     }
+    // }
 
     addEventListener('keydown', (event) => {
         if(event.key == "w"){
@@ -325,31 +326,32 @@ function main() {
     });
 
     addEventListener('click', (event) => {
-        console.log("Key up: " + event.button);
         if(event.button === 0){
             //Remove 1 bloco que está apontando
-            let line = new Line(camera.Position(), [camera.Normal(10)[0]+camera.Position()[0], camera.Normal(10)[1]+camera.Position()[1], camera.Normal(10)[2]+camera.Position()[2]]);
-            let eq = equacaoDaReta(camera.Position(), [camera.Normal(2)[0]+camera.Position()[0], camera.Normal(2)[1]+camera.Position()[1], camera.Normal(2)[2]+camera.Position()[2]]);
-            let closestIndex = [];
-            objectsToDraw.forEach(function(objeto, index, object) {
-                if(distancia(camera.Position(), objeto.GetPosition()) <= 3){
-                    let d = distanciaPontoReta(eq, objeto.GetPosition());
-                    if (d < 3){
-                        closestIndex.push(index);
+            let closestDistance = 2;
+            let closestIndex;
+            objectsToDraw.forEach(function(objeto, index) {
+                if(distancia(camera.Position(), objeto.GetPosition()) <= 2){
+                    let d = distancia([camera.Normal()[0]+camera.Position()[0], camera.Normal()[1]+camera.Position()[1], camera.Normal()[2]+camera.Position()[2]], objeto.GetPosition())
+                    console.log(formatedFloat(d));
+                    if (d < closestDistance && d < 1){
+                        let retiraLine = new Line([camera.Normal()[0]+camera.Position()[0], camera.Normal()[1]+camera.Position()[1], camera.Normal()[2]+camera.Position()[2]], objeto.GetPosition())
+                        closestIndex = index;
+                        closestDistance = d;
                     }
                 }
             });
-            closestIndex.forEach(function(objeto, index, object){
-                console.log(objeto);
-                objectsToDraw.splice(objeto, 1);
-            })
+            if(closestDistance < 1){
+                objectsToDraw.splice(closestIndex, 1);
+            }
             //console.log(d);
         }
         else if(event.button === 2){
             //Coloca um bloco aonde está apontando
-            let d = distanciaPontoReta([4, 6, 2], [3, -6]);
-            console.log(d);
-            console.log(distancia(camera.Position(), objectsToDraw[0].GetPosition()));
+            for(let i = 0; i<64; ++i){
+                console.log(formatedFloat(distancia(camera.Position(), objectsToDraw[i].GetPosition())));
+                console.log(formatedFloat(distancia(objectsToDraw[i].GetPosition(), camera.Position())));
+            }
         }
     });
 

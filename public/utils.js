@@ -309,29 +309,28 @@ class Line {
         mat4.scale(this.modelMatrix, auxMatrix, finalPos);
     }
     Lenght(){
-        let lenght = Math.sqrt((this.finalPos[0]-this.initialPos[0])**2+(this.finalPos[1]-this.initialPos[1])**2+(this.finalPos[2]-this.initialPos[2])**2)
-        return lenght;
+        return Math.sqrt((this.finalPos[0]-this.initialPos[0])**2+(this.finalPos[1]-this.initialPos[1])**2+(this.finalPos[2]-this.initialPos[2])**2)
     }
 }
 
 function distancia(a, b){
-    return d = Math.sqrt((b[0]-a[0])**2 + (b[1]-a[1])**2 + (b[2]-a[2])**2)
+    return Math.sqrt((b[0]-a[0])**2 + (b[1]-a[1])**2 + (b[2]-a[2])**2);
 }
 
-function equacaoDaReta(p1, p2){
-    let a = p1[1] - p2[1];
-    let b = p2[0] - p1[0];
-    let c = p1[0]*p2[1] - p2[0]*p1[1];
-    return [a, b, c];
-}
+// function equacaoDaReta(p1, p2){
+//     let a = p1[1] - p2[1];
+//     let b = p2[0] - p1[0];
+//     let c = p1[0]*p2[1] - p2[0]*p1[1];
+//     return [a, b, c];
+// }
 
-function distanciaPontoReta(eq, p0){
-    // [a, b, c];
-    let dividendo = Math.abs(eq[0]*p0[0] + eq[1]*p0[1] + eq[2]);
-    let divisor = Math.sqrt(Math.pow(eq[0], 2) + Math.pow(eq[1], 2));
-    let d = dividendo / divisor;
-    return d;
-}
+// function distanciaPontoReta(eq, p0){
+//     // [a, b, c];
+//     let dividendo = Math.abs(eq[0]*p0[0] + eq[1]*p0[1] + eq[2]);
+//     let divisor = Math.sqrt(Math.pow(eq[0], 2) + Math.pow(eq[1], 2));
+//     let d = dividendo / divisor;
+//     return d;
+// }
 
 function formatedFloat(x) {
     return Number.parseFloat(x).toFixed(2);

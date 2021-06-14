@@ -106,6 +106,7 @@ function main() {
     const sandBlock = [2,1, 2,1, 2,1, 2,1, 2,1, 2,1];
     const woodBlock = [4,1, 4,1, 4,1, 4,1, 5,1, 5,1];
     const leafBlock = [5,3, 5,3, 5,3, 5,3, 5,3, 5,3];
+    const cloudBlock = [2,11, 2,11, 2,11, 2,11, 2,11, 2,11];
 
     const cubeVAO = gl.createVertexArray();
 
@@ -188,6 +189,9 @@ function main() {
 
     const camera = new Camera(75, gl.canvas.width/gl.canvas.height, 1e-4, 10000);
     eventsListeners(camera, linesToDrawn);
+
+
+    // ===== GERAÇÃO DO MUNDO ===== //
 
     const world = [];     //- Matrix de chunks
     const chunk = [];     //- Guarda a info de todos blocos no chunk    
@@ -272,12 +276,27 @@ function main() {
         }
     }
 
+    //Geração das nuvens
+    for (let i = -CHUNK_X/2; i < CHUNK_X*1.5; ++i){
+        for(let k = -CHUNK_Z/2; k < CHUNK_Z*1.5; ++k){
+            let cloudHeight = noise.perlin2(i*noiseScale*5, k*noiseScale*5);
+            if(cloudHeight > 0.2) {
+                let cloud = new Object(i, 30 + Math.floor((cloudHeight*3)), -k);
+                objectsToDraw.push(cloud);
+                cloud.SetBlockType(cloudBlock);
+            }
+        }
+    }
+
     // Debug Lines
     // for (let i = 1; i < 5; ++i){
     //     for (let j=1; j < 5; ++j){
     //         let initialLine = new Line([i, 0, -j], [32,16,-12]);
     //     }
     // }
+
+
+    // ===== INPUTS ===== //
 
     addEventListener('keydown', (event) => {
         if(event.key == "w"){

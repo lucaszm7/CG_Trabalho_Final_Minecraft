@@ -247,10 +247,10 @@ class Camera {
 }
 
 class Object {
-    constructor(){
-        this.translationX = 0;
-        this.translationY = 0;
-        this.translationZ = 0;
+    constructor(x = 0, y = 0, z = 0){
+        this.translationX = x;
+        this.translationY = y;
+        this.translationZ = z;
         this.rotationX = 0;
         this.rotationY = 0;
         this.rotationZ = 0;

@@ -227,10 +227,8 @@ function main() {
         for(let k = 0; k < CHUNK_Z; ++k){
             for (let j=highest[i][k] - 1; j > 0; --j){
                 chunk[i][j][k] = 1;
-                let block = new Object();
+                let block = new Object(i, j, -k);
                 objectsToDraw.push(block);
-                block.SetPosition(i, j, -k);
-                block.matrixMultiply()
                 if(j > 3){
                     block.SetBlockType(grassBlock);
                 }
@@ -242,34 +240,28 @@ function main() {
                 }
 
                 //Make a Tree
-                if(j==highest[i][k] && highest[i][k] > 3){
+                if(j==highest[i][k]-1 && highest[i][k] > 3){
                     if(Math.random() <= 0.003){
 
                         //Wood
                         for(let w=0; w<4;w++){
                             chunk[i][j+1+w][k] = 1;
-                            let block = new Object();
+                            let block = new Object(i, j+2+w, -k);
                             objectsToDraw.push(block);
-                            block.SetPosition(i, j+1+w, -k);
-                            block.matrixMultiply()
                             block.SetBlockType(woodBlock);
                         }
 
                         //Leafs
                         for(let m=-2; m<=2; ++m){
                             for(let n=-2; n<=2; ++n){
-                                let block = new Object();
+                                let block = new Object(m+i, j+5, -k+n);
                                 objectsToDraw.push(block);
-                                block.SetPosition(m+i, j+4, -k+n);
-                                block.matrixMultiply()
                                 block.SetBlockType(leafBlock);
                             }
                             for(let n=-1; n<=1; ++n){
                                 if(m==0 || n==0){
-                                    let block = new Object();
+                                    let block = new Object(m+i, j+6, -k+n);
                                     objectsToDraw.push(block);
-                                    block.SetPosition(m+i, j+5, -k+n);
-                                    block.matrixMultiply()
                                     block.SetBlockType(leafBlock);
                                 }
                             }

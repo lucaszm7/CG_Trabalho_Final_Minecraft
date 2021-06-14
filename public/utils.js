@@ -192,9 +192,9 @@ class Camera {
         return [auxMatrix[12],auxMatrix[13],auxMatrix[14]];
     }
 
-    Normal(){
+    Normal(lenght=1){
         let normal = vec4.create();
-        normal[2] = 1;
+        normal[2] = lenght;
         vec4.transformMat4(normal, normal, this.cameraMatrix);
         normal[0] *= -1;
         normal[1] *= -1;

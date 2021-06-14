@@ -1,4 +1,4 @@
-function eventsListeners(camera, linesToDrawn, wireFrame, useTextures){
+function eventsListeners(camera){
     const canvas = document.querySelector('canvas');
     canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
     document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
@@ -9,6 +9,7 @@ function eventsListeners(camera, linesToDrawn, wireFrame, useTextures){
             document.documentElement.requestFullscreen();
         }
     }
+    
     document.addEventListener('pointerlockchange', lockChangeAlert, false);
     document.addEventListener('mozpointerlockchange', lockChangeAlert, false);
     //window.addEventListener('resize', resizeCanvas, false);

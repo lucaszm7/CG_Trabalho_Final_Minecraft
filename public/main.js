@@ -290,31 +290,31 @@ function main() {
         if(event.key == "w"){
             camera.translationW();
         }
-        if(event.key == "s"){
+        else if(event.key == "s"){
             camera.translationS();
         }
-        if(event.key == "a"){
+        else if(event.key == "a"){
             camera.translationA();
         }
-        if(event.key == "d"){
+        else if(event.key == "d"){
             camera.translationD();
         }
-        if(event.key == "q"){
+        else if(event.key == "q"){
             camera.translationQ();
         }
-        if(event.key == "e"){
+        else if(event.key == "e"){
             camera.translationE();
         }
-        if(event.key == "k"){
+        else if(event.key == "k"){
             console.log(formatedFloat(camera.Position()[0]), formatedFloat(camera.Position()[1]), formatedFloat(camera.Position()[2]));
         }
-        if(event.key == "h"){
+        else if(event.key == "h"){
             wireFrame = !(wireFrame);
         }
-        if(event.key == "t"){
+        else if(event.key == "t"){
             useTextures = !(useTextures);
         }
-        if(event.key == "l"){
+        else if(event.key == "l"){
             let line = new Line(camera.Position(), [camera.Normal()[0]+camera.Position()[0], camera.Normal()[1]+camera.Position()[1], camera.Normal()[2]+camera.Position()[2]]);
             console.log(line);
         }
@@ -322,6 +322,17 @@ function main() {
     
     addEventListener('keyup', (event) => {
         //console.log("Key up: " + event.key);
+    });
+
+    addEventListener('click', (event) => {
+        console.log("Key up: " + event.button);
+        if(event.button === 0){
+            //Remove 1 bloco que está apontando
+            let line = new Line(camera.Position(), [camera.Normal(2)[0]+camera.Position()[0], camera.Normal(2)[1]+camera.Position()[1], camera.Normal(2)[2]+camera.Position()[2]]);
+        }
+        else if(event.button === 2){
+            //Coloca um bloco aonde está apontando
+        }
     });
 
     gl.useProgram(program);
@@ -337,9 +348,6 @@ function main() {
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         camera.ComputeView();
         camera.ComputeViewProjection();
-
-        //let debugLine = new Line(camera.Position(), [-camera.Normal()[0]+camera.Position()[0], -camera.Normal()[1]+camera.Position()[1], -camera.Normal()[2]+camera.Position()[2]])
-        //let debugLineSide = new Line(camera.Position(), camera.NormalSide())
 
         gl.bindVertexArray(lineVAO);
         linesToDrawn.forEach(function(line) {

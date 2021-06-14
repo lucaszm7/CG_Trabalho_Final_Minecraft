@@ -106,7 +106,7 @@ function main() {
     const sandBlock = [2,1, 2,1, 2,1, 2,1, 2,1, 2,1];
     const woodBlock = [4,1, 4,1, 4,1, 4,1, 5,1, 5,1];
     const leafBlock = [5,3, 5,3, 5,3, 5,3, 5,3, 5,3];
-    const cloudBlock = [2,11, 2,11, 2,11, 2,11, 2,11, 2,11];
+    const cloudBlock = [6,10, 7,10, 6,10, 7,10, 7,10, 6,10];
 
     const cubeVAO = gl.createVertexArray();
 
@@ -359,9 +359,29 @@ function main() {
         }
         else if(event.button === 2){
             //Coloca um bloco aonde está apontando
-            for(let i = 0; i<64; ++i){
-                console.log(formatedFloat(distancia(camera.Position(), objectsToDraw[i].GetPosition())));
-                console.log(formatedFloat(distancia(objectsToDraw[i].GetPosition(), camera.Position())));
+            let closestDistance = 2;
+            let closestIndex;
+            objectsToDraw.forEach(function(objeto, index) {
+                if(distancia(camera.Position(), objeto.GetPosition()) <= 2){
+                    let d = distancia([camera.Normal()[0]+camera.Position()[0], camera.Normal()[1]+camera.Position()[1], camera.Normal()[2]+camera.Position()[2]], objeto.GetPosition())
+                    //console.log(formatedFloat(d));
+                    if (d < closestDistance && d < 1){
+                        let retiraLine = new Line([camera.Normal()[0]+camera.Position()[0], camera.Normal()[1]+camera.Position()[1], camera.Normal()[2]+camera.Position()[2]], objeto.GetPosition())
+                        closestIndex = index;
+                        closestDistance = d;
+                    }
+                }
+            });
+            if(closestDistance < 1){
+                //let distanceBetween = [Math.floor(camera.Position()[0] - objectsToDraw[closestIndex].GetPosition()[0]), Math.floor(camera.Position()[1] - objectsToDraw[closestIndex].GetPosition()[1]), Math.floor(camera.Position()[2] - objectsToDraw[closestIndex].GetPosition()[2])];
+                //console.log(distanceBetween);
+                let block = new Object(Math.round(camera.Normal()[0]+camera.Position()[0]), Math.round(camera.Normal()[1]+camera.Position()[1]), Math.round(camera.Normal()[2]+camera.Position()[2]));
+                block.SetBlockType(TNTBlock);
+                if(block.GetPosition() == objectsToDraw[closestIndex].GetPosition()){
+                    console.log("Its Equal!!!!!!");
+                }
+                objectsToDraw.push(block);
+                console.log(formatedFloat(block.GetPosition()[0]), formatedFloat(block.GetPosition()[1]), formatedFloat(block.GetPosition()[2]))
             }
         }
     });

@@ -5,6 +5,14 @@ const vec3 = glMatrix.vec3;
 const vec4 = glMatrix.vec4;
 const objectsToDraw  = []
 const linesToDrawn = []
+const cameraMovement = {
+    w: false,
+    s: false,
+    a: false,
+    d: false,
+    q: false,
+    e: false,
+};
 
 const CHUNK_X = 64;
 const CHUNK_Y = 8;
@@ -300,22 +308,22 @@ function main() {
 
     addEventListener('keydown', (event) => {
         if(event.key == "w"){
-            camera.translationW();
+            cameraMovement.w = true;
         }
         else if(event.key == "s"){
-            camera.translationS();
+            cameraMovement.s = true;
         }
         else if(event.key == "a"){
-            camera.translationA();
+            cameraMovement.a = true;
         }
         else if(event.key == "d"){
-            camera.translationD();
+            cameraMovement.d = true;
         }
         else if(event.key == "q"){
-            camera.translationQ();
+            cameraMovement.q = true;
         }
         else if(event.key == "e"){
-            camera.translationE();
+            cameraMovement.e = true;
         }
         else if(event.key == "k"){
             console.log(formatedFloat(camera.Position()[0]), formatedFloat(camera.Position()[1]), formatedFloat(camera.Position()[2]));
@@ -333,7 +341,24 @@ function main() {
     });
     
     addEventListener('keyup', (event) => {
-        //console.log("Key up: " + event.key);
+        if(event.key == "w"){
+            cameraMovement.w = false;
+        }
+        else if(event.key == "s"){
+            cameraMovement.s = false;
+        }
+        else if(event.key == "a"){
+            cameraMovement.a = false;
+        }
+        else if(event.key == "d"){
+            cameraMovement.d = false;
+        }
+        else if(event.key == "q"){
+            cameraMovement.q = false;
+        }
+        else if(event.key == "e"){
+            cameraMovement.e = false;
+        }
     });
 
     addEventListener('click', (event) => {
@@ -397,6 +422,25 @@ function main() {
     function drawScene (time) {
 
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+        if(cameraMovement.w){
+            camera.translationW();
+        }
+        if(cameraMovement.s){
+            camera.translationS();
+        }
+        if(cameraMovement.a){
+            camera.translationA();
+        }
+        if(cameraMovement.d){
+            camera.translationD();
+        }
+        if(cameraMovement.q){
+            camera.translationQ();
+        }
+        if(cameraMovement.e){
+            camera.translationE();
+        }
         camera.ComputeView();
         camera.ComputeViewProjection();
 

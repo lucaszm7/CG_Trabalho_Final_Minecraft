@@ -24,4 +24,6 @@
     - Nuvens
 - **Retirar e colocar blocos**
     - Botão esquerdo e direito do mouse respequitivamente
-- 
+---
+*Ainda não implementado*
+- Directional Light

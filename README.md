@@ -2,7 +2,7 @@
 - node necessário para rodar!
 
 # Como rodar:
-> node server.js
-> http://localhost:3000/
+- $ node server.js
+- http://localhost:3000/
 
 Futuramento farei Deploy

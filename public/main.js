@@ -116,6 +116,8 @@ function main() {
     const leafBlock = [5,3, 5,3, 5,3, 5,3, 5,3, 5,3];
     const cloudBlock = [6,10, 7,10, 6,10, 7,10, 7,10, 6,10];
 
+    const cubeNormal = [0,0,1, -1,0,0, 0,0,-1, 1,0,0, 0,1,0, 0,-1,0];
+
     const cubeVAO = gl.createVertexArray();
 
     gl.bindVertexArray(cubeVAO);
@@ -193,6 +195,7 @@ function main() {
         mvpMatrix: gl.getUniformLocation(program, `u_mvpMatrix`),
         useTextures: gl.getUniformLocation(program, `u_useTextures`),
         face: gl.getUniformLocation(program, `u_face`),
+        normals: gl.getUniformLocation(program, `u_normals`),
     };
 
     const camera = new Camera(75, gl.canvas.width/gl.canvas.height, 1e-4, 10000);

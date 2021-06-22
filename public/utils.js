@@ -313,6 +313,21 @@ class Line {
     }
 }
 
+class Light{
+    constructor(x, y, z){
+        this._x = x;
+        this._y = y;
+        this._z = z;
+        this.color = [1,1,1];
+    }
+}
+
+class DirectionalLight extends Light {
+    constructor(){
+
+    }
+}
+
 function distancia(a, b){
     return Math.sqrt((b[0]-a[0])**2 + (b[1]-a[1])**2 + (b[2]-a[2])**2);
 }
@@ -384,6 +399,7 @@ const vertexShaderSource =
 
 uniform mat4 u_mvpMatrix;
 uniform vec2[6] u_face;
+uniform vec3 u_normals;
 
 in vec4 a_position;
 in vec2 a_textcoord;
@@ -406,7 +422,7 @@ void main() {
     v_color = a_color;
 
     if(f == 0){
-        v_light_intensity = 0.9;
+        v_light_intensity = 0.8;
     }
     else if(f == 1){
         v_light_intensity = 0.7;

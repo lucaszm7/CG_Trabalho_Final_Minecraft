@@ -391,6 +391,7 @@ in vec3 a_color;
 
 out vec3 v_color;
 out vec2 v_textcoord;
+out float v_light_intensity;
 
 const float size = 1.0/16.0;
 
@@ -403,6 +404,25 @@ void main() {
 
     v_textcoord = vec2(u,v);
     v_color = a_color;
+
+    if(f == 0){
+        v_light_intensity = 0.9;
+    }
+    else if(f == 1){
+        v_light_intensity = 0.7;
+    }
+    else if(f == 2){
+        v_light_intensity = 1.20;
+    }
+    else if(f == 3){
+        v_light_intensity = 1.5;
+    }
+    else if(f == 4){
+        v_light_intensity = 1.4;
+    }
+    else if(f == 5){
+        v_light_intensity = 0.8;
+    }
 }
 `;
 const fragmentShaderSource = 
@@ -414,15 +434,23 @@ uniform sampler2D u_texture;
 
 in vec3 v_color;
 in vec2 v_textcoord;
+in float v_light_intensity;
 
 out vec4 outColor;
 
-void main() {
+void main() {    
+
     if(u_useTextures == 0){
         outColor = vec4(v_color, 1.0);
     }
     else {
-        outColor = texture(u_texture, v_textcoord);
+        vec4 texture_color = texture(u_texture, v_textcoord);
+        texture_color.x = texture_color.x * v_light_intensity;
+        if(v_light_intensity < 1.0){
+            texture_color.y = texture_color.y * v_light_intensity;
+            texture_color.z = texture_color.z * v_light_intensity;
+        }
+        outColor = texture_color;
     }
 }
 `;

@@ -107,7 +107,7 @@ function main() {
     ]);
 
     const colorData = setColorData();
-
+    
     const grassBlock = [3,0, 3,0, 3,0, 3,0, 2,9, 2,0];
     const stoneBlock = [0,1, 0,1, 0,1, 0,1, 0,1, 0,1];
     const TNTBlock = [8,0, 8,0, 8,0, 8,0, 9,0, 10,0];
@@ -115,11 +115,13 @@ function main() {
     const woodBlock = [4,1, 4,1, 4,1, 4,1, 5,1, 5,1];
     const leafBlock = [5,3, 5,3, 5,3, 5,3, 5,3, 5,3];
     const cloudBlock = [6,10, 7,10, 6,10, 7,10, 7,10, 6,10];
+    
+    let currentTypeBlock = TNTBlock;
 
     const cubeNormal = [0,0,1, -1,0,0, 0,0,-1, 1,0,0, 0,1,0, 0,-1,0];
-
+    
     const cubeVAO = gl.createVertexArray();
-
+    
     gl.bindVertexArray(cubeVAO);
 
     const cubeBuffer = gl.createBuffer();
@@ -176,8 +178,6 @@ function main() {
     // Fill the texture with a 1x1 blue pixel.
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
                   new Uint8Array([0, 0, 255, 255]));
-
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     
     // Asynchronously load an image
     var image = new Image();
@@ -186,7 +186,12 @@ function main() {
         // Now that the image has loaded make copy it to the texture.
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.generateMipmap(gl.TEXTURE_2D);
+        //gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST );
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST );
     });
     
     //const viewProjectionMatrix = mat4.create();
@@ -199,6 +204,7 @@ function main() {
     };
 
     const camera = new Camera(75, gl.canvas.width/gl.canvas.height, 1e-4, 10000);
+    camera.velocity = 5;
     eventsListeners(camera, linesToDrawn);
 
 
@@ -341,6 +347,15 @@ function main() {
             let line = new Line(camera.Position(), [camera.Normal()[0]+camera.Position()[0], camera.Normal()[1]+camera.Position()[1], camera.Normal()[2]+camera.Position()[2]]);
             console.log(line);
         }
+        else if(event.key == "1"){
+            currentTypeBlock = grassBlock;
+        }
+        else if(event.key == "2"){
+            currentTypeBlock = stoneBlock;
+        }
+        else if(event.key == "3"){
+            currentTypeBlock = woodBlock;
+        }
     });
     
     addEventListener('keyup', (event) => {
@@ -407,7 +422,7 @@ function main() {
                     console.log("Object Inside other Object");
                 }
                 let block = new Object(Math.round(camera.Normal()[0]+camera.Position()[0]), Math.round(camera.Normal()[1]+camera.Position()[1]), Math.round(camera.Normal()[2]+camera.Position()[2]));
-                block.SetBlockType(TNTBlock);
+                block.SetBlockType(currentTypeBlock);
                 objectsToDraw.push(block);
                 console.log(formatedFloat(block.GetPosition()[0]), formatedFloat(block.GetPosition()[1]), formatedFloat(block.GetPosition()[2]))
             }
@@ -420,29 +435,32 @@ function main() {
 
     // const objectsToDrawSorted = objectsToDraw.sort((a, b) => a.translationZ < b.translationZ)
     // console.log(objectsToDrawSorted);
-
+    let then = 0;
     requestAnimationFrame(drawScene);
-    function drawScene (time) {
+    function drawScene (now) {
+
+        let deltaTime = (now - then)*0.001;
+        then = now;
 
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
         if(cameraMovement.w){
-            camera.translationW();
+            camera.translationW(deltaTime*camera.velocity);
         }
         if(cameraMovement.s){
-            camera.translationS();
+            camera.translationS(deltaTime*camera.velocity);
         }
         if(cameraMovement.a){
-            camera.translationA();
+            camera.translationA(deltaTime*camera.velocity);
         }
         if(cameraMovement.d){
-            camera.translationD();
+            camera.translationD(deltaTime*camera.velocity);
         }
         if(cameraMovement.q){
-            camera.translationQ();
+            camera.translationQ(deltaTime*camera.velocity);
         }
         if(cameraMovement.e){
-            camera.translationE();
+            camera.translationE(deltaTime*camera.velocity);
         }
         camera.ComputeView();
         camera.ComputeViewProjection();
@@ -457,6 +475,9 @@ function main() {
 
         gl.bindVertexArray(cubeVAO);
         objectsToDraw.forEach(function(objeto) {
+
+            
+
             //if((Math.abs(objeto.GetPosition()[0] - camera.Position()[0]) < 64) && (Math.abs(objeto.GetPosition()[1] - camera.Position()[1]) < 8) && (Math.abs(objeto.GetPosition()[2] - camera.Position()[2]) < 64)){
                 mat4.multiply(mvpMatrix, camera.viewProjectionMatrix, objeto.modelMatrix);
                 gl.uniformMatrix4fv(uniformLocation.mvpMatrix, false, mvpMatrix);

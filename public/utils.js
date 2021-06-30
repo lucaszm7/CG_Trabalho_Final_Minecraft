@@ -147,6 +147,7 @@ class Scene {
 
 class Camera {
     constructor(fieldOfView, aspectRatio, near, far){
+        this.velocity;
         this.up = [0, 1, 0];
         this.cameraMatrix;
         this.viewMatrix = mat4.create();

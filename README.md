@@ -9,7 +9,7 @@
     - > $ /node server.js
     - http://localhost:3000/
 - Online:
-    - https://cg-trabalho-final-minecraft-lucaszm7.vercel.app/
+    - https://mineonline-lucaszm7.vercel.app/
 
 ## O que é implementado?
 - **Movimentação da câmera**

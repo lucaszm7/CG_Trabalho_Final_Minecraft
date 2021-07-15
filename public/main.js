@@ -231,9 +231,11 @@ function main() {
         for (let k=0; k < CHUNK_Z; ++k){
             let block = new Object();
             objectsToDraw.push(block);
-            //block.bindAttribuites(program, gl, cubeBuffer, textcoordBuffer);
             block.SetPosition(i, Math.floor(CHUNK_Y/2 * ((noise.simplex2(i*noiseScale, k*noiseScale)) + 1)), -k);
             highest[i][k] = block.translationY;
+
+            chunk[i][block.translationY][k] = block;
+
             if(block.translationY < 3){
                 block.SetBlockType(sandBlock);
             }
@@ -304,13 +306,7 @@ function main() {
             }
         }
     }
-
-    // Debug Lines
-    // for (let i = 1; i < 5; ++i){
-    //     for (let j=1; j < 5; ++j){
-    //         let initialLine = new Line([i, 0, -j], [32,16,-12]);
-    //     }
-    // }
+    // ===== END WORLD GENERATION ===== //
 
 
     // ===== INPUTS ===== //
@@ -336,6 +332,9 @@ function main() {
         }
         else if(event.key == "k"){
             console.log(formatedFloat(camera.Position()[0]), formatedFloat(camera.Position()[1]), formatedFloat(camera.Position()[2]));
+        }
+        else if(event.key == "n"){
+
         }
         else if(event.key == "h"){
             wireFrame = !(wireFrame);
@@ -388,7 +387,7 @@ function main() {
                 if(distancia(camera.Position(), objeto.GetPosition()) <= 2){
                     let d = distancia([camera.Normal()[0]+camera.Position()[0], camera.Normal()[1]+camera.Position()[1], camera.Normal()[2]+camera.Position()[2]], objeto.GetPosition())
                     console.log(formatedFloat(d));
-                    if (d < closestDistance && d < 1){
+                    if (d < closestDistance && d < 1.5){
                         let retiraLine = new Line([camera.Normal()[0]+camera.Position()[0], camera.Normal()[1]+camera.Position()[1], camera.Normal()[2]+camera.Position()[2]], objeto.GetPosition())
                         closestIndex = index;
                         closestDistance = d;
@@ -408,23 +407,25 @@ function main() {
                 if(distancia(camera.Position(), objeto.GetPosition()) <= 2){
                     let d = distancia([camera.Normal()[0]+camera.Position()[0], camera.Normal()[1]+camera.Position()[1], camera.Normal()[2]+camera.Position()[2]], objeto.GetPosition())
                     //console.log(formatedFloat(d));
-                    if (d < closestDistance && d < 1){
+                    if (d < closestDistance && d < 1.5){
                         let retiraLine = new Line([camera.Normal()[0]+camera.Position()[0], camera.Normal()[1]+camera.Position()[1], camera.Normal()[2]+camera.Position()[2]], objeto.GetPosition())
                         closestIndex = index;
                         closestDistance = d;
                     }
                 }
             });
-            if(closestDistance < 1){
+            if(closestDistance < 1.5){
                 let distanceBetween = [Math.round(camera.Position()[0] + camera.Normal()[0] - objectsToDraw[closestIndex].GetPosition()[0]), Math.round(camera.Position()[1] + camera.Normal()[1] - objectsToDraw[closestIndex].GetPosition()[1]), Math.round(camera.Position()[2] + camera.Normal()[2] - objectsToDraw[closestIndex].GetPosition()[2])];
                 console.log(distanceBetween);
                 if(distanceBetween[0] == 0 && distanceBetween[1] == 0 && distanceBetween[2] == 0){
                     console.log("Object Inside other Object");
                 }
-                let block = new Object(Math.round(camera.Normal()[0]+camera.Position()[0]), Math.round(camera.Normal()[1]+camera.Position()[1]), Math.round(camera.Normal()[2]+camera.Position()[2]));
-                block.SetBlockType(currentTypeBlock);
-                objectsToDraw.push(block);
-                console.log(formatedFloat(block.GetPosition()[0]), formatedFloat(block.GetPosition()[1]), formatedFloat(block.GetPosition()[2]))
+                else {
+                    let block = new Object(Math.round(camera.Normal()[0]+camera.Position()[0]), Math.round(camera.Normal()[1]+camera.Position()[1]), Math.round(camera.Normal()[2]+camera.Position()[2]));
+                    block.SetBlockType(currentTypeBlock);
+                    objectsToDraw.push(block);
+                    console.log(formatedFloat(block.GetPosition()[0]), formatedFloat(block.GetPosition()[1]), formatedFloat(block.GetPosition()[2]))
+                }
             }
         }
     });
@@ -475,9 +476,6 @@ function main() {
 
         gl.bindVertexArray(cubeVAO);
         objectsToDraw.forEach(function(objeto) {
-
-            
-
             //if((Math.abs(objeto.GetPosition()[0] - camera.Position()[0]) < 64) && (Math.abs(objeto.GetPosition()[1] - camera.Position()[1]) < 8) && (Math.abs(objeto.GetPosition()[2] - camera.Position()[2]) < 64)){
                 mat4.multiply(mvpMatrix, camera.viewProjectionMatrix, objeto.modelMatrix);
                 gl.uniformMatrix4fv(uniformLocation.mvpMatrix, false, mvpMatrix);

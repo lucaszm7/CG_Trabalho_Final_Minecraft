@@ -399,47 +399,45 @@ const vertexShaderSource =
 `#version 300 es
 
 uniform mat4 u_mvpMatrix;
+uniform mat4 u_normalMatrix;
 uniform vec2[6] u_face;
-uniform vec3 u_normals;
+uniform vec3 u_lightDirection;
+uniform int u_sun;
 
 in vec4 a_position;
 in vec2 a_textcoord;
 in vec3 a_color;
+in vec3 a_normal;
 
 out vec3 v_color;
 out vec2 v_textcoord;
-out float v_light_intensity;
+out float v_brightness;
+out vec3 v_lightColor;
 
 const float size = 1.0/16.0;
+const float ambient = 0.4;
+const vec3 lightColor = normalize(vec3(255.0, 227.0, 189.0));
 
 void main() {
-    int f = int(a_position.w);
     gl_Position = u_mvpMatrix * vec4(a_position.x, a_position.y, a_position.z, 1);
 
-    float u = (u_face[f].x + a_textcoord.x) * size;
-    float v = (u_face[f].y + a_textcoord.y) * size;
+
+    float u = (u_face[int(a_position.w)].x + a_textcoord.x) * size;
+    float v = (u_face[int(a_position.w)].y + a_textcoord.y) * size;
 
     v_textcoord = vec2(u,v);
     v_color = a_color;
+    
 
-    if(f == 0){
-        v_light_intensity = 0.8;
+    vec3 worldNormal = (u_normalMatrix * vec4(a_normal, 1.0)).xyz;
+    float diffuse = max(0.0, dot(worldNormal, u_lightDirection));
+    if(u_sun == 1){
+        v_brightness = 1.0;
     }
-    else if(f == 1){
-        v_light_intensity = 0.7;
+    else{
+        v_brightness = diffuse + ambient;
     }
-    else if(f == 2){
-        v_light_intensity = 1.20;
-    }
-    else if(f == 3){
-        v_light_intensity = 1.5;
-    }
-    else if(f == 4){
-        v_light_intensity = 1.4;
-    }
-    else if(f == 5){
-        v_light_intensity = 0.8;
-    }
+    v_lightColor = lightColor;
 }
 `;
 const fragmentShaderSource = 
@@ -451,7 +449,8 @@ uniform sampler2D u_texture;
 
 in vec3 v_color;
 in vec2 v_textcoord;
-in float v_light_intensity;
+in float v_brightness;
+in vec3 v_lightColor;
 
 out vec4 outColor;
 
@@ -461,13 +460,12 @@ void main() {
         outColor = vec4(v_color, 1.0);
     }
     else {
-        vec4 texture_color = texture(u_texture, v_textcoord);
-        texture_color.x = texture_color.x * v_light_intensity;
-        if(v_light_intensity < 1.0){
-            texture_color.y = texture_color.y * v_light_intensity;
-            texture_color.z = texture_color.z * v_light_intensity;
-        }
-        outColor = texture_color;
+        vec4 texel = texture(u_texture, v_textcoord);
+        vec3 light = (v_brightness * v_lightColor);
+        texel.xyz *= light; 
+        //texel.xyz *= v_brightness;
+        //texel.xyz *= v_lightColor;
+        outColor = texel;
     }
 }
 `;

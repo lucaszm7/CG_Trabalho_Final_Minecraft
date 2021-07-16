@@ -18,6 +18,8 @@ const CHUNK_X = 64;
 const CHUNK_Y = 8;
 const CHUNK_Z = 64;
 
+const sunVelocity = 1;
+
 function main() {
 
     const canvas = document.querySelector('canvas');
@@ -34,6 +36,7 @@ function main() {
     const fragmentShader = compileShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
     const program = createProgram(gl, vertexShader, fragmentShader);
 
+    // |F|E|A|D|C|B|
     const vertexData = [
         
         //Frente
@@ -108,6 +111,16 @@ function main() {
 
     const colorData = setColorData();
     
+    // |F|E|A|D|C|B|
+    const normalData = [
+        ...repeat(6, [0, 0, 1]),     // +Z
+        ...repeat(6, [-1, 0, 0]),    // -X
+        ...repeat(6, [0, 0, -1]),    // -Z
+        ...repeat(6, [1, 0, 0]),     // +X
+        ...repeat(6, [0, 1, 0]),     // +Y
+        ...repeat(6, [0, -1, 0]),    // -Y
+    ];
+
     const grassBlock = [3,0, 3,0, 3,0, 3,0, 2,9, 2,0];
     const stoneBlock = [0,1, 0,1, 0,1, 0,1, 0,1, 0,1];
     const TNTBlock = [8,0, 8,0, 8,0, 8,0, 9,0, 10,0];
@@ -115,15 +128,16 @@ function main() {
     const woodBlock = [4,1, 4,1, 4,1, 4,1, 5,1, 5,1];
     const leafBlock = [5,3, 5,3, 5,3, 5,3, 5,3, 5,3];
     const cloudBlock = [6,10, 7,10, 6,10, 7,10, 7,10, 6,10];
+
+    const sunBlock = [8,7, 6,7, 6,7, 6,7, 6,7, 6,6, 6,7];
     
     let currentTypeBlock = TNTBlock;
-
-    const cubeNormal = [0,0,1, -1,0,0, 0,0,-1, 1,0,0, 0,1,0, 0,-1,0];
     
     const cubeVAO = gl.createVertexArray();
     
     gl.bindVertexArray(cubeVAO);
 
+    //Buffers
     const cubeBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, cubeBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);
@@ -132,7 +146,7 @@ function main() {
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 4, gl.FLOAT, false, 0, 0);
 
-
+    // ===
     const textcoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, textcoordBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textcoordData), gl.STATIC_DRAW);
@@ -141,7 +155,7 @@ function main() {
     gl.enableVertexAttribArray(textcoordLocation);
     gl.vertexAttribPointer(textcoordLocation, 2, gl.FLOAT, true, 0, 0);
 
-
+    // ===
     const colorBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colorData), gl.STATIC_DRAW);
@@ -150,6 +164,14 @@ function main() {
     gl.enableVertexAttribArray(colorLocation);
     gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
 
+    // ===
+    const normalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normalData), gl.STATIC_DRAW);
+
+    let normalLocation = gl.getAttribLocation(program, `a_normal`);
+    gl.enableVertexAttribArray(normalLocation);
+    gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
 
 
     const lineVAO = gl.createVertexArray();
@@ -196,11 +218,18 @@ function main() {
     
     //const viewProjectionMatrix = mat4.create();
     const mvpMatrix = mat4.create();
+    const mvMatrix = mat4.create();
+    const normalMatrix = mat4.create();
+    let lightDirection = vec3.fromValues(1.0, 1.0, -1.0);
+    vec3.normalize(lightDirection, lightDirection);
+
     const uniformLocation = {
         mvpMatrix: gl.getUniformLocation(program, `u_mvpMatrix`),
         useTextures: gl.getUniformLocation(program, `u_useTextures`),
         face: gl.getUniformLocation(program, `u_face`),
-        normals: gl.getUniformLocation(program, `u_normals`),
+        normalMatrix: gl.getUniformLocation(program, `u_normalMatrix`),
+        lightDirection: gl.getUniformLocation(program, `u_lightDirection`),
+        sun: gl.getUniformLocation(program, `u_sun`),
     };
 
     const camera = new Camera(75, gl.canvas.width/gl.canvas.height, 1e-4, 10000);
@@ -430,6 +459,13 @@ function main() {
         }
     });
 
+    const sun = new Object(10*lightDirection[0], 10*lightDirection[1], 10*lightDirection[2]);
+    sun.scaleX = 10;
+    sun.scaleY = 10;
+    sun.scaleZ = 10;
+    sun.matrixMultiply();
+    sun.SetBlockType(sunBlock);
+
     gl.useProgram(program);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
@@ -442,6 +478,10 @@ function main() {
 
         let deltaTime = (now - then)*0.001;
         then = now;
+
+        //console.log(lightDirection);
+        vec3.rotateX(lightDirection, lightDirection, [0,0,0], degToRad(sunVelocity*deltaTime));
+        vec3.rotateZ(lightDirection, lightDirection, [0,0,0], degToRad(sunVelocity*deltaTime/2));
 
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
@@ -476,20 +516,46 @@ function main() {
 
         gl.bindVertexArray(cubeVAO);
         objectsToDraw.forEach(function(objeto) {
-            //if((Math.abs(objeto.GetPosition()[0] - camera.Position()[0]) < 64) && (Math.abs(objeto.GetPosition()[1] - camera.Position()[1]) < 8) && (Math.abs(objeto.GetPosition()[2] - camera.Position()[2]) < 64)){
-                mat4.multiply(mvpMatrix, camera.viewProjectionMatrix, objeto.modelMatrix);
-                gl.uniformMatrix4fv(uniformLocation.mvpMatrix, false, mvpMatrix);
-                gl.uniform2fv(uniformLocation.face, objeto.GetBlockType());
-                gl.uniform1i(uniformLocation.useTextures, useTextures);
 
-                if(wireFrame){
-                    gl.drawArrays(gl.LINE_STRIP, 0, vertexData.length / 4);
-                }
-                else{
-                    gl.drawArrays(gl.TRIANGLES, 0, vertexData.length / 4);
-                }
-            //}
+            //Lightining Computation
+                mat4.multiply(mvMatrix, camera.viewMatrix, objeto.modelMatrix);
+                mat4.invert(normalMatrix, objeto.modelMatrix);
+                mat4.transpose(normalMatrix, normalMatrix);
+
+            mat4.multiply(mvpMatrix, camera.viewProjectionMatrix, objeto.modelMatrix);
+            gl.uniformMatrix4fv(uniformLocation.mvpMatrix, false, mvpMatrix);
+            gl.uniformMatrix4fv(uniformLocation.normalMatrix, false, normalMatrix);
+            gl.uniform3fv(uniformLocation.lightDirection, lightDirection);
+            gl.uniform2fv(uniformLocation.face, objeto.GetBlockType());
+            gl.uniform1i(uniformLocation.useTextures, useTextures);
+            gl.uniform1i(uniformLocation.sun, 0);
+
+            if(wireFrame){
+                gl.drawArrays(gl.LINE_STRIP, 0, vertexData.length / 4);
+            }
+            else{
+                gl.drawArrays(gl.TRIANGLES, 0, vertexData.length / 4);
+            }
+
         });
+
+        //SUN
+
+        sun.SetPosition(64*lightDirection[0], 64*lightDirection[1], 64*lightDirection[2]);
+        sun.matrixMultiply();
+
+        mat4.multiply(mvpMatrix, camera.viewProjectionMatrix, sun.modelMatrix);
+        gl.uniformMatrix4fv(uniformLocation.mvpMatrix, false, mvpMatrix);
+        gl.uniform2fv(uniformLocation.face, sun.GetBlockType());
+        gl.uniform1i(uniformLocation.useTextures, useTextures);
+        gl.uniform1i(uniformLocation.sun, 1);
+
+        if(wireFrame){
+            gl.drawArrays(gl.LINE_STRIP, 0, vertexData.length / 4);
+        }
+        else{
+            gl.drawArrays(gl.TRIANGLES, 0, vertexData.length / 4);
+        }
 
         requestAnimationFrame(drawScene);
     }
